@@ -6,7 +6,7 @@ using El_Tringulito.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace ElTriangulitoP.Controllers
+namespace El_Tringulito.Controllers
 {
     public class HomeController : Controller
     {

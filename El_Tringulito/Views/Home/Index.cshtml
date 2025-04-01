@@ -1,8 +1,137 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="text-center">Dashboard</h1>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Resumen -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title">Combos</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Total de combos: @ViewData["CombosCount"]</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title">Mesas</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Total de mesas: @ViewData["MesasCount"]</p>
+                    <p class="card-text">Disponibles: @ViewData["MesasDisponibles"]</p>
+                    <p class="card-text">Ocupadas: @ViewData["MesasOcupadas"]</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="card-title">Órdenes</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Total de órdenes: @ViewData["OrdenesCount"]</p>
+                    <p class="card-text">Total de ventas: @(((decimal)ViewData["TotalVentas"]).ToString("C"))</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title">Platos</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Total de platos: @ViewData["PlatosCount"]</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos y Estadísticas -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title">Estadísticas</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="myChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title">Órdenes Recientes</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        @foreach (var orden in (List<Ordenes>)ViewData["OrdenesRecientes"])
+                        {
+                            <li>
+                                <strong>Cliente:</strong> @orden.nombre_cliente <br />
+                                <strong>Fecha:</strong> @orden.fecha.ToString("dd/MM/yyyy HH:mm") <br />
+                                <strong>Total:</strong> @orden.total?.ToString("C")
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Combos', 'Mesas', 'Órdenes', 'Platos'],
+                datasets: [{
+                    label: 'Cantidad',
+                    data: [
+        @ViewData["CombosCount"],
+        @ViewData["MesasCount"],
+        @ViewData["OrdenesCount"],
+        @ViewData["PlatosCount"]
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+}

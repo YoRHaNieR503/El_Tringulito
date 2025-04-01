@@ -14,7 +14,9 @@ namespace El_Tringulito.Models
         public DbSet<Promociones> promociones { get; set; }
         public DbSet<Platos> platos { get; set; }
         public DbSet<Ordenes> ordenes { get; set; }
+        public DbSet<Usuario> usuarios { get; set; }
 
-        
+
+
     }
 }

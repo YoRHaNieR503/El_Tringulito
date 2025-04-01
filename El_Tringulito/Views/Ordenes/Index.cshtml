@@ -1,0 +1,83 @@
+﻿@model IEnumerable<ElTriangulitoP.Models.Ordenes>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.id_mesa)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.id_plato)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.id_promocion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.id_combo)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.nombre_cliente)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.fecha)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.estado)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.comentario)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.total)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.id_mesa)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.id_plato)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.id_promocion)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.id_combo)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.nombre_cliente)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.fecha)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.estado)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.comentario)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.total)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.id_orden">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.id_orden">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.id_orden">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

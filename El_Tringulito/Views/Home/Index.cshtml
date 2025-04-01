@@ -4,90 +4,106 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-12">
-            <h1 class="text-center">Dashboard</h1>
-        </div>
-    </div>
-
-    <!-- Tarjetas de Resumen -->
-    <div class="row">
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="card-title">Combos</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Total de combos: @ViewData["CombosCount"]</p>
-                </div>
+        <!-- Menú lateral -->
+        <div class="col-md-2">
+            <button class="btn btn-primary" id="menu-toggle">&#9776; Menú</button>
+            <div id="menu" class="d-none mt-2">
+                <a href="/Mesas" class="btn btn-secondary btn-block">Mesas</a>
+                <a href="/Platos" class="btn btn-secondary btn-block">Platos</a>
+                <a href="/Combos" class="btn btn-secondary btn-block">Combos</a>
+                <a href="/Ordenes" class="btn btn-secondary btn-block">Órdenes</a>
             </div>
         </div>
 
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title">Mesas</h5>
-                </div>
-                <div class="card-body">
-                    <p class="card-text">Total de mesas: @ViewData["MesasCount"]</p>
-                    <p class="card-text">Disponibles: @ViewData["MesasDisponibles"]</p>
-                    <p class="card-text">Ocupadas: @ViewData["MesasOcupadas"]</p>
+        <div class="col-md-10">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1 class="text-center">Dashboard</h1>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header bg-warning text-white">
-                    <h5 class="card-title">Órdenes</h5>
+            <!-- Tarjetas de Resumen -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="card-title">Combos</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">Total de combos: @ViewData["CombosCount"]</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="card-text">Total de órdenes: @ViewData["OrdenesCount"]</p>
-                    <p class="card-text">Total de ventas: @(((decimal)ViewData["TotalVentas"]).ToString("C"))</p>
+
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title">Mesas</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">Total de mesas: @ViewData["MesasCount"]</p>
+                            <p class="card-text">Disponibles: @ViewData["MesasDisponibles"]</p>
+                            <p class="card-text">Ocupadas: @ViewData["MesasOcupadas"]</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-header bg-warning text-white">
+                            <h5 class="card-title">Órdenes</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">Total de órdenes: @ViewData["OrdenesCount"]</p>
+                            <p class="card-text">Total de ventas: @(((decimal)ViewData["TotalVentas"]).ToString("C"))</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="card-title">Platos</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">Total de platos: @ViewData["PlatosCount"]</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-3">
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="card-title">Platos</h5>
+            <!-- Gráficos y Estadísticas -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title">Estadísticas</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="myChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="card-text">Total de platos: @ViewData["PlatosCount"]</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Gráficos y Estadísticas -->
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title">Estadísticas</h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="myChart" width="400" height="200"></canvas>
-                </div>
-            </div>
-        </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title">Órdenes Recientes</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                @foreach (var orden in (List<Ordenes>)ViewData["OrdenesRecientes"])
 
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="card-title">Órdenes Recientes</h5>
-                </div>
-                <div class="card-body">
-                    <ul>
-                        @foreach (var orden in (List<Ordenes>)ViewData["OrdenesRecientes"])
-                        {
-                            <li>
-                                <strong>Cliente:</strong> @orden.nombre_cliente <br />
-                                <strong>Fecha:</strong> @orden.fecha.ToString("dd/MM/yyyy HH:mm") <br />
-                                <strong>Total:</strong> @orden.total?.ToString("C")
-                            </li>
-                        }
-                    </ul>
+                                {
+                                    <li>
+                                        <strong>Cliente:</strong> @orden.nombre_cliente <br />
+                                        <strong>Fecha:</strong> @orden.fecha.ToString("dd/MM/yyyy HH:mm") <br />
+                                        <strong>Total:</strong> @orden.total?.ToString("C")
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -109,7 +125,7 @@
         @ViewData["MesasCount"],
         @ViewData["OrdenesCount"],
         @ViewData["PlatosCount"]
-                    ],
+                            ],
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
                         'rgba(54, 162, 235, 0.2)',
@@ -132,6 +148,11 @@
                     }
                 }
             }
+        });
+
+        document.getElementById('menu-toggle').addEventListener('click', function () {
+            var menu = document.getElementById('menu');
+            menu.classList.toggle('d-none');
         });
     </script>
 }

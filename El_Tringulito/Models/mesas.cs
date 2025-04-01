@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ElTriangulitoP.Models
+namespace El_Tringulito.Models
 {
     [Table("mesas")]
     public class Mesas

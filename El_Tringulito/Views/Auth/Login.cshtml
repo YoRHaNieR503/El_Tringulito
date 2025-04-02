@@ -1,29 +1,109 @@
-﻿@model El_Tringulito.Models.Usuario
+﻿@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = "_LayoutAuth"; // Layout especial para autenticación
+}
 
-<div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="card p-4" style="width: 300px;">
-        <h2 class="text-center">Login</h2>
-        <form asp-action="Login" asp-controller="Auth" method="post">
-            <div class="mb-3">
-                <label for="usuario" class="form-label">Usuario</label>
-                <input type="text" id="usuario" name="NombreUsuario" class="form-control" required />
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2><i class="fas fa-lock"></i> Acceso al Sistema</h2>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                @ViewBag.Error
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
             </div>
-            <div class="mb-3">
-                <label for="contrasenia" class="form-label">Contraseña</label>
-                <input type="password" id="contrasenia" name="Contrasenia" class="form-control" required />
+        }
+
+        <form asp-action="Login" method="post" class="auth-form">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+            <div class="form-group">
+                <label for="NombreUsuario"><i class="fas fa-user"></i> Usuario</label>
+                <input type="text" class="form-control" id="NombreUsuario" name="NombreUsuario"
+                       required autofocus placeholder="Ingrese su usuario">
             </div>
-            <button type="submit" class="btn btn-primary w-100">Entrar</button>
+
+            <div class="form-group">
+                <label for="Contrasenia"><i class="fas fa-key"></i> Contraseña</label>
+                <input type="password" class="form-control" id="Contrasenia" name="Contrasenia"
+                       required placeholder="Ingrese su contraseña">
+            </div>
+
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
+                <label class="form-check-label" for="rememberMe">Recordar sesión</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-auth">
+                <i class="fas fa-sign-in-alt"></i> Ingresar
+            </button>
         </form>
+
     </div>
 </div>
 
-<style>
-    body {
-        background-color: #3498db;
-    }
-    .card {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-</style>
+@section Styles {
+    <style>
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            overflow: hidden;
+        }
+
+        .auth-header {
+            background-color: #343a40;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .auth-form {
+            padding: 25px;
+        }
+
+        .btn-auth {
+            padding: 10px;
+            font-size: 1.1rem;
+        }
+
+        .auth-footer {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Validación básica del formulario
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const usuario = document.getElementById('NombreUsuario').value.trim();
+            const contrasenia = document.getElementById('Contrasenia').value.trim();
+
+            if (!usuario || !contrasenia) {
+                e.preventDefault();
+                alert('Por favor complete todos los campos');
+            }
+        });
+    </script>
+}

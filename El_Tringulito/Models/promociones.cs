@@ -18,5 +18,6 @@ namespace El_Tringulito.Models
         public DateTime? fecha_fin { get; set; }
 
         public decimal? precio { get; set; }
+
     }
 }

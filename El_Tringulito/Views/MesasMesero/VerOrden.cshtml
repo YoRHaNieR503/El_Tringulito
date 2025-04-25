@@ -2,23 +2,18 @@
 
 @{
     ViewData["Title"] = "Ver Orden";
-    bool puedeEditar = true;
     bool puedeCancelar = ViewBag.EstadoGeneral == "Pendiente";
     bool tieneOrden = ViewBag.EstadoGeneral != "Sin Orden";
 }
 
 <div class="container">
-    <h1 class="text-center my-4">
-        Mesa @Model.nombre - @(tieneOrden ? $"Orden {ViewBag.EstadoGeneral}" : "Sin Orden")
-        <i class="bi bi-info-circle fs-5 ms-2" data-bs-toggle="tooltip"
-           title="Vista de gestión de orden para la mesa seleccionada"></i>
-    </h1>
+    <h1 class="text-center my-4">Mesa @Model.nombre - @(tieneOrden ? $"Orden {ViewBag.EstadoGeneral}" : "Sin Orden")</h1>
 
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             @TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
@@ -26,7 +21,7 @@
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
@@ -34,22 +29,21 @@
         @if (tieneOrden)
         {
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <span class="badge bg-@(ViewBag.EstadoGeneral == "Pendiente" ? "warning" : "success") fs-6">
-                        @ViewBag.EstadoGeneral
-                        <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                           title='@(ViewBag.EstadoGeneral == "Pendiente" ? "La orden está pendiente de ser enviada a cocina" : "La orden está siendo preparada en cocina")'></i>
-                    </span>
-                </div>
+                <span class="badge bg-@(ViewBag.EstadoGeneral == "Pendiente" ? "warning" : "success") fs-6">@ViewBag.EstadoGeneral</span>
+
                 @if (puedeCancelar)
                 {
-                    <form asp-action="CancelarOrden" method="post" onsubmit="return confirm('¿Está seguro que desea cancelar esta orden?');">
+                    <form asp-action="CancelarOrden" method="post" onsubmit="return confirm('¿Cancelar esta orden?');">
                         <input type="hidden" name="id_mesa" value="@Model.id_mesa" />
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-x-circle"></i> Cancelar Orden
-                            <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                               title="Elimina todos los productos y libera la mesa"></i>
-                        </button>
+                        <button type="submit" class="btn btn-danger">Cancelar Orden</button>
+                    </form>
+                }
+
+                @if (ViewBag.PuedeFinalizar)
+                {
+                    <form asp-action="FinalizarOrden" method="post" class="d-inline" onsubmit="return confirm('¿Finalizar esta orden?');">
+                        <input type="hidden" name="id_mesa" value="@Model.id_mesa" />
+                        <button type="submit" class="btn btn-primary">Finalizar Orden</button>
                     </form>
                 }
             </div>
@@ -59,152 +53,69 @@
             <input type="hidden" asp-for="id_mesa" />
 
             <div class="form-group mb-3">
-                <label for="nombre_cliente" class="form-label">
-                    <i class="bi bi-person"></i> Nombre del Cliente:
-                    <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                       title="Nombre del cliente asociado a esta mesa (obligatorio)"></i>
-                </label>
+                <label>Nombre del Cliente:</label>
                 <input type="text" id="nombre_cliente" name="nombre_cliente" class="form-control"
                        value="@ViewBag.NombreCliente" required @(ViewBag.EstadoGeneral == "En Proceso" ? "readonly" : "") />
             </div>
 
             <div class="form-group mb-4">
-                <label class="form-label">
-                    <i class="bi bi-plus-circle"></i> Agregar Productos:
-                    <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                       title="Seleccione el tipo de producto que desea agregar a la orden"></i>
-                </label>
-                <div class="d-grid gap-2 d-md-block">
-                    <button type="button" class="btn btn-primary me-2" onclick="cargarPlatos()">
-                        <i class="bi bi-egg-fried"></i> Platos
-                        <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                           title="Agregar platos individuales del menú"></i>
-                    </button>
-                    <button type="button" class="btn btn-success me-2" onclick="cargarPromociones()">
-                        <i class="bi bi-tag"></i> Promociones
-                        <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                           title="Agregar promociones disponibles"></i>
-                    </button>
-                    <button type="button" class="btn btn-warning" onclick="cargarCombos()">
-                        <i class="bi bi-collection"></i> Combos
-                        <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                           title="Agregar combos predefinidos"></i>
-                    </button>
-                </div>
+                <button type="button" class="btn btn-primary me-2" onclick="cargarPlatos()">Platos</button>
+                <button type="button" class="btn btn-success me-2" onclick="cargarPromociones()">Promociones</button>
+                <button type="button" class="btn btn-warning" onclick="cargarCombos()">Combos</button>
             </div>
 
             <div id="productosSeleccionados" class="mb-4">
-                <h4>
-                    <i class="bi bi-list-check"></i> Productos Seleccionados:
-                    <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                       title="Lista de productos agregados a la orden actual"></i>
-                </h4>
-                @if (tieneOrden)
-                {
-                    <ul class="list-group" id="listaSeleccionados">
-                        @foreach (var item in ViewBag.OrdenesActivas)
+                <h4>Productos Seleccionados:</h4>
+                <ul class="list-group" id="listaSeleccionados">
+                    @if (tieneOrden)
+                    {
+                        foreach (var item in ViewBag.OrdenesActivas)
                         {
-                            <li class="list-group-item producto-item p-0" id="prod_@item.Orden.id_orden">
+                            string estado = item.Orden.estado;
+                            string itemId = $"prod_{item.Orden.id_orden}";
+                            <li class="list-group-item producto-item p-0" id="@itemId">
                                 <div class="p-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
                                             <strong>@item.NombreProducto</strong> - $@item.Orden.total?.ToString("F2")
                                             <span class="badge bg-secondary ms-2">@item.TipoProducto</span>
+                                            <span class="badge bg-@(estado == "Pendiente" ? "warning" : estado == "En Proceso" ? "primary" : "success") ms-2">@estado</span>
                                         </div>
-                                        @if (puedeCancelar)
-                                        {
-                                            <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn p-1"
-                                                    onclick="eliminarProducto('prod_@item.Orden.id_orden', @item.Orden.total)"
-                                                    data-bs-toggle="tooltip" title="Eliminar producto">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        }
                                     </div>
                                     @if (!string.IsNullOrEmpty(item.Orden.comentario))
                                     {
-                                        <div class="form-group mt-2">
-                                            <label class="small text-muted">
-                                                <i class="bi bi-chat-left-text"></i> Comentarios:
-                                                <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                                                   title="Indicaciones especiales para este producto"></i>
-                                            </label>
-                                            @if (puedeCancelar)
-                                            {
-                                                <textarea class="form-control form-control-sm comentario-input"
-                                                          rows="2" data-orden-id="@item.Orden.id_orden"
-                                                          onchange="actualizarComentario('prod_@item.Orden.id_orden', this.value)">@item.Orden.comentario</textarea>
-                                            }
-                                            else
-                                            {
-                                                <p class="small">@item.Orden.comentario</p>
-                                            }
-                                        </div>
-                                    }
-                                    else if (puedeCancelar)
-                                    {
-                                        <div class="form-group mt-2">
-                                            <label class="small text-muted">
-                                                <i class="bi bi-chat-left-text"></i> Comentarios:
-                                                <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                                                   title="Indicaciones especiales para este producto"></i>
-                                            </label>
-                                            <textarea class="form-control form-control-sm comentario-input"
-                                                      rows="2" data-orden-id="@item.Orden.id_orden"
-                                                      onchange="actualizarComentario('prod_@item.Orden.id_orden', this.value)"
-                                                      placeholder="Ej: Sin picante, bien cocido, etc."></textarea>
-                                        </div>
+                                        <p class="small">@item.Orden.comentario</p>
                                     }
                                 </div>
                             </li>
                         }
-                    </ul>
-                }
-                else
-                {
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> No hay productos seleccionados. Agrega productos para crear una orden.
-                    </div>
-                    <ul class="list-group" id="listaSeleccionados"></ul>
-                }
+                    }
+                </ul>
             </div>
 
             <div class="form-group mb-3">
-                <label for="total" class="form-label">
-                    <i class="bi bi-cash-stack"></i> Total:
-                    <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                       title="Suma total de todos los productos en la orden"></i>
-                </label>
+                <label>Total:</label>
                 <input type="text" id="total" name="total" class="form-control"
                        value="@(tieneOrden ? ViewBag.TotalOrdenes.ToString("F2") : "0.00")" readonly />
             </div>
 
             <div class="d-flex justify-content-between">
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Volver a Mesas
-                </a>
-                <button type="submit" class="btn btn-success">
-                    <i class="bi bi-check-circle"></i> @(tieneOrden ? "Actualizar Orden" : "Crear Orden")
-                    <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                       title='@(tieneOrden ? "Guarda los cambios realizados en la orden" : "Crea una nueva orden con los productos seleccionados")'></i>
-                </button>
+                <a asp-action="Index" class="btn btn-secondary">Volver a Mesas</a>
+                <button type="submit" class="btn btn-success">@(tieneOrden ? "Actualizar Orden" : "Crear Orden")</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal para mostrar productos -->
+<!-- Modal -->
 <div class="modal fade" id="productosModal" tabindex="-1" aria-labelledby="productosModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="productosModalLabel">Seleccionar Productos</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div id="modalContent">
-                    <!-- Contenido dinámico del modal -->
-                </div>
-            </div>
+            <div class="modal-body" id="modalContent"></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
@@ -212,96 +123,32 @@
     </div>
 </div>
 
-@section Styles {
-    <style>
-        .producto-item {
-            transition: all 0.3s ease;
-        }
-
-            .producto-item:hover {
-                background-color: #f8f9fa;
-            }
-
-        .comentario-input {
-            border-radius: 0 0 5px 5px;
-            border-top: 1px dashed #dee2e6;
-        }
-
-        .eliminar-btn {
-            transition: all 0.2s ease;
-        }
-
-            .eliminar-btn:hover {
-                transform: scale(1.1);
-            }
-    </style>
-}
-
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script>
         let total = @(tieneOrden ? ViewBag.TotalOrdenes : 0);
         let productosSeleccionados = [];
-        let puedeCancelar = @(puedeCancelar.ToString().ToLower());
+        let puedeEliminarNuevos = true; // control para productos nuevos
 
-        // Inicializar tooltips
-        $(document).ready(function(){
-            $('[data-bs-toggle="tooltip"]').tooltip();
-        });
-
-        // Inicializar los productos existentes
-        @if (tieneOrden)
-        {
-            foreach (var item in ViewBag.OrdenesActivas)
-            {
-                <text>
-                        productosSeleccionados.push({
-                            id: @(item.Orden.id_plato ?? item.Orden.id_promocion ?? item.Orden.id_combo ?? 0),
-                            tipo: '@(item.Orden.id_plato != null ? "platos" : item.Orden.id_promocion != null ? "promociones" : "combos")',
-                            nombre: '@Html.Raw(item.NombreProducto)',
-                            precio: @item.Orden.total,
-                            comentario: '@Html.Raw(item.Orden.comentario ?? "")',
-                            itemId: 'prod_@item.Orden.id_orden'
-                        });
-                </text>
-            }
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        function cargarPlatos() {
-            $.get("/MesasMesero/GetPlatos", function (data) {
-                mostrarProductosEnModal(data, "Platos");
-            });
-        }
+        function cargarPlatos() { $.get("/MesasMesero/GetPlatos", data => mostrarProductosEnModal(data, "platos")); }
+        function cargarPromociones() { $.get("/MesasMesero/GetPromociones", data => mostrarProductosEnModal(data, "promociones")); }
+        function cargarCombos() { $.get("/MesasMesero/GetCombos", data => mostrarProductosEnModal(data, "combos")); }
 
-        function cargarPromociones() {
-            $.get("/MesasMesero/GetPromociones", function (data) {
-                mostrarProductosEnModal(data, "Promociones");
-            });
-        }
-
-        function cargarCombos() {
-            $.get("/MesasMesero/GetCombos", function (data) {
-                mostrarProductosEnModal(data, "Combos");
-            });
-        }
-
-        function mostrarProductosEnModal(data, titulo) {
-            var html = `<h3>${titulo}</h3><div class="row">`;
-            data.forEach(function (producto) {
-                let id = producto.id_plato || producto.id_promocion || producto.id_combo;
+        function mostrarProductosEnModal(data, tipo) {
+            let html = `<h5 class="mb-3 text-capitalize">${tipo}</h5><div class="row">`;
+            data.forEach(p => {
+                let id = p.id_plato || p.id_promocion || p.id_combo;
                 html += `
                     <div class="col-md-4 mb-3">
                         <div class="card h-100">
                             <div class="card-body">
-                                <h5 class="card-title">${producto.nombre}</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">$${producto.precio.toFixed(2)}</h6>
-                                <p class="card-text text-truncate">${producto.descripcion || 'Sin descripción'}</p>
-                                <button type="button" class="btn btn-primary w-100"
-                                    onclick="agregarProducto(${id}, '${titulo.toLowerCase()}', '${escapeHtml(producto.nombre)}', ${producto.precio})">
-                                    <i class="bi bi-plus-circle"></i> Agregar
-                                </button>
+                                <h5>${p.nombre}</h5>
+                                <h6 class="text-muted">$${p.precio.toFixed(2)}</h6>
+                                <p class="text-truncate">${p.descripcion || 'Sin descripción'}</p>
+                                <button class="btn btn-primary w-100" onclick="agregarProducto(${id}, '${tipo}', '${escapeHtml(p.nombre)}', ${p.precio})">Agregar</button>
                             </div>
                         </div>
                     </div>`;
@@ -311,97 +158,61 @@
             new bootstrap.Modal(document.getElementById('productosModal')).show();
         }
 
-        function escapeHtml(text) {
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
         function agregarProducto(id, tipo, nombre, precio) {
-            const itemId = `prod_${id}_${tipo}_${Date.now()}`;
+            const itemId = `nuevo_${Date.now()}`;
+            productosSeleccionados.push({ id, tipo, nombre, precio, comentario: '', itemId });
 
-            productosSeleccionados.push({
-                id,
-                tipo,
-                nombre,
-                precio,
-                comentario: '',
-                itemId
-            });
-
-            var productoHTML = `
+            const html = `
                 <li class="list-group-item producto-item p-0" id="${itemId}">
                     <div class="p-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>${nombre}</strong> - $${precio.toFixed(2)}
-                                <span class="badge bg-secondary ms-2">${tipo === 'platos' ? 'Plato' : tipo === 'promociones' ? 'Promoción' : 'Combo'}</span>
-                            </div>
+                            <div><strong>${nombre}</strong> - $${precio.toFixed(2)} <span class="badge bg-secondary ms-2">${tipo}</span> <span class="badge bg-primary ms-2">En Proceso</span></div>
                             <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn p-1"
-                                onclick="eliminarProducto('${itemId}', ${precio})" ${puedeCancelar ? '' : 'disabled'}
-                                data-bs-toggle="tooltip" title="Eliminar producto">
+                                onclick="eliminarProducto('${itemId}', ${precio})">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
                         <div class="form-group mt-2">
-                            <label class="small text-muted">
-                                <i class="bi bi-chat-left-text"></i> Comentarios:
-                                <i class="bi bi-info-circle fs-6 ms-1" data-bs-toggle="tooltip"
-                                   title="Indicaciones especiales para este producto"></i>
-                            </label>
-                            <textarea class="form-control form-control-sm comentario-input"
-                                      rows="2" onchange="actualizarComentario('${itemId}', this.value)"
-                                      placeholder="Ej: Sin picante, bien cocido, etc." ${puedeCancelar ? '' : 'readonly'}></textarea>
+                            <label class="small text-muted">Comentarios:</label>
+                            <textarea class="form-control form-control-sm comentario-input" rows="2"
+                                      onchange="actualizarComentario('${itemId}', this.value)"
+                                      placeholder="Ej: Sin picante, bien cocido, etc."></textarea>
                         </div>
                     </div>
                 </li>`;
-
-            $("#listaSeleccionados").append(productoHTML);
-            $('[data-bs-toggle="tooltip"]').tooltip();
-
+            $("#listaSeleccionados").append(html);
             total += precio;
             $("#total").val(total.toFixed(2));
+            bootstrap.Modal.getInstance(document.getElementById('productosModal')).hide();
+        }
 
-            bootstrap.Modal.getInstance(document.getElementById('productosModal'))?.hide();
+        function actualizarComentario(itemId, comentario) {
+            const producto = productosSeleccionados.find(p => p.itemId === itemId);
+            if (producto) producto.comentario = comentario;
         }
 
         function eliminarProducto(itemId, precio) {
-            if (!puedeCancelar) return;
+            if (!puedeEliminarNuevos) return; // deshabilitar después de actualizar
 
             $(`#${itemId}`).remove();
-
             const index = productosSeleccionados.findIndex(p => p.itemId === itemId);
             if (index !== -1) {
                 total -= productosSeleccionados[index].precio;
                 productosSeleccionados.splice(index, 1);
             }
-
             $("#total").val(total.toFixed(2));
         }
 
-        function actualizarComentario(itemId, comentario) {
-            if (!puedeCancelar) return;
-
-            const producto = productosSeleccionados.find(p => p.itemId === itemId);
-            if (producto) {
-                producto.comentario = comentario;
-            }
-        }
-
         function agregarCamposOcultos() {
+            puedeEliminarNuevos = false; // desactivar eliminación al actualizar
             $("input[name^='productos']").remove();
-
-            productosSeleccionados.forEach((producto, index) => {
-                var camposOcultos = `
-                    <input type="hidden" name="productos[${index}].id" value="${producto.id}" />
-                    <input type="hidden" name="productos[${index}].tipo" value="${producto.tipo}" />
-                    <input type="hidden" name="productos[${index}].comentario" value="${escapeHtml(producto.comentario)}" />
-                    <input type="hidden" name="productos[${index}].precio" value="${producto.precio}" />
-                `;
-                $("#productosSeleccionados").append(camposOcultos);
+            productosSeleccionados.forEach((p, i) => {
+                $("#productosSeleccionados").append(`
+                    <input type="hidden" name="productos[${i}].id" value="${p.id}" />
+                    <input type="hidden" name="productos[${i}].tipo" value="${p.tipo}" />
+                    <input type="hidden" name="productos[${i}].comentario" value="${escapeHtml(p.comentario)}" />
+                    <input type="hidden" name="productos[${i}].precio" value="${p.precio}" />
+                `);
             });
         }
     </script>

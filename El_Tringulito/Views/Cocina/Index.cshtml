@@ -1,0 +1,142 @@
+﻿@model List<El_Tringulito.Controllers.OrdenCocinaViewModel>
+
+@{
+    ViewData["Title"] = "Panel de Cocina";
+}
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center py-4">
+        <div>
+            <h1 class="display-5 fw-bold text-primary">
+                <i class="bi bi-egg-fried me-2"></i>Panel de Cocina
+            </h1>
+            <p class="text-muted mb-0">Gestión de órdenes en tiempo real</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button id="refresh-btn" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-funnel"></i> Filtrar
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
+                    <li><a class="dropdown-item filter-option active" href="#" data-filter="all">Todas las órdenes</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-filter="pendiente"><span class="badge bg-warning me-2"></span>Pendientes</a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-filter="proceso"><span class="badge bg-info me-2"></span>En proceso</a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-filter="entregada"><span class="badge bg-success me-2"></span>Entregadas</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            <i class="bi bi-emoji-smile fs-3"></i>
+            <p class="mb-0">No hay órdenes activas.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var ordenMesa in Model)
+            {
+                <div class="col-12 col-md-6" data-status="@ordenMesa.EstadoGeneral.ToLower()">
+                    <div class="card border shadow rounded-3">
+                        <div class="card-header @GetHeaderClass(ordenMesa.EstadoGeneral) text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-0">Mesa @ordenMesa.MesaNombre</h5>
+                                    <small><i class="bi bi-person"></i> @ordenMesa.NombreCliente</small>
+                                </div>
+                                <div>
+                                    <span class="badge @GetStatusBadgeClass(ordenMesa.EstadoGeneral)">@ordenMesa.EstadoGeneral</span>
+                                    <span class="badge bg-light text-dark ms-1"><i class="bi bi-clock"></i> @ordenMesa.Ordenes.First().Fecha.ToString("hh:mm tt")</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                @foreach (var orden in ordenMesa.Ordenes)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>@orden.NombreProducto</strong>
+                                            <div class="small text-muted">@orden.TipoProducto</div>
+                                            @if (!string.IsNullOrEmpty(orden.Comentario))
+                                            {
+                                                <div class="mt-1 small text-primary"><i class="bi bi-chat-left-text"></i> @orden.Comentario</div>
+                                            }
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="fw-bold">$@orden.Precio.ToString("N2")</span><br />
+                                            <span class="badge @GetItemStatusBadgeClass(orden.Estado)">@orden.Estado</span>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="card-footer text-end bg-light">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Total: $@ordenMesa.Total.ToString("N2")</span>
+                                <div>
+                                    @if (ordenMesa.EstadoGeneral == "Pendiente")
+                                    {
+                                        <form asp-action="TomarOrden" method="post" class="d-inline">
+                                            <input type="hidden" name="mesaId" value="@ordenMesa.MesaId" />
+                                            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-circle"></i> Tomar</button>
+                                        </form>
+                                    }
+                                    else if (ordenMesa.EstadoGeneral == "En Proceso")
+                                    {
+                                        <form asp-action="EntregarOrden" method="post" class="d-inline">
+                                            <input type="hidden" name="mesaId" value="@ordenMesa.MesaId" />
+                                            <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check2-all"></i> Entregar</button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@functions {
+    string GetHeaderClass(string estado)
+    {
+        return estado switch
+        {
+            "Pendiente" => "bg-warning",
+            "En Proceso" => "bg-info",
+            "Entregada" => "bg-success",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetStatusBadgeClass(string estado)
+    {
+        return estado switch
+        {
+            "Pendiente" => "bg-warning text-dark",
+            "En Proceso" => "bg-info text-white",
+            "Entregada" => "bg-success text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    string GetItemStatusBadgeClass(string estado)
+    {
+        return estado switch
+        {
+            "Pendiente" => "bg-warning text-dark",
+            "En Proceso" => "bg-primary text-white",
+            "Entregada" => "bg-success text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+}

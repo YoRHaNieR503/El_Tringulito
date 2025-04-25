@@ -1,3 +1,4 @@
+using El_Tringulito.Hubs;
 using El_Tringulito.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddSignalR();
 
 // Configuración de la base de datos
 builder.Services.AddDbContext<ElTriangulitoDBContext>(options =>
@@ -61,5 +64,6 @@ app.UseSession();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapHub<CocinaHub>("/cocinaHub");
 
 app.Run();

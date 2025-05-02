@@ -4,35 +4,96 @@
     ViewData["Title"] = "Mesas";
 }
 
-<h1>Mesas</h1>
+<style>
+    body {
+        background: linear-gradient(to bottom, #2d1b00, #a66f00);
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID Mesa</th>
-            <th>Nombre</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var mesa in Model)
-        {
-            <tr>
-                <td>@mesa.id_mesa</td>
-                <td>@mesa.nombre</td>
-                <td>@mesa.estado</td>
-                <td>
-                    @if (mesa.estado == "Libre")
+    .card {
+        background-color: rgba(0, 0, 0, 0.3);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-header {
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 20px 20px 0 0;
+        font-weight: bold;
+        color: white;
+        border-bottom: none;
+        text-align: center;
+    }
+
+    .table {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+        border: none;
+    }
+
+    .table th, .table td {
+        color: white;
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(255, 193, 7, 0.4);
+    }
+
+    .btn {
+        border-radius: 10px;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header d-flex justify-content-between align-items-center border-0">
+            <h2 class="mb-0"><i class="bi bi-table me-2"></i>Estado de Mesas</h2>
+        </div>
+        <div class="card-body">
+            <table class="table table-dark table-hover">
+                <thead>
+                    <tr>
+                        <th>ID Mesa</th>
+                        <th>Nombre</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var mesa in Model)
                     {
-                        <a asp-action="Reservar" asp-route-id="@mesa.id_mesa" class="btn btn-primary">Reservar</a>
+                        <tr>
+                            <td>@mesa.id_mesa</td>
+                            <td>@mesa.nombre</td>
+                            <td>
+                                <span class="badge @(mesa.estado == "Libre" ? "bg-success" : "bg-warning text-dark")">@mesa.estado</span>
+                            </td>
+                            <td class="text-end">
+                                @if (mesa.estado == "Libre")
+                                {
+                                    <a asp-action="Reservar" asp-route-id="@mesa.id_mesa" class="btn btn-sm btn-success"><i class="bi bi-bookmark-check"></i> Reservar</a>
+                                }
+                                else
+                                {
+                                    <a asp-action="VerOrden" asp-route-id="@mesa.id_mesa" class="btn btn-sm btn-secondary"><i class="bi bi-receipt-cutoff"></i> Ver Orden</a>
+                                }
+                            </td>
+                        </tr>
                     }
-                    else
-                    {
-                        <a asp-action="VerOrden" asp-route-id="@mesa.id_mesa" class="btn btn-secondary">Ver Orden</a>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

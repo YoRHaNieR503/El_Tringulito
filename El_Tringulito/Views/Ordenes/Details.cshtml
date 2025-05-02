@@ -1,72 +1,87 @@
 ﻿@model El_Tringulito.Models.Ordenes
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Detalles de la Orden";
 }
 
-<h1>Details</h1>
+<div class="container mt-5">
+    <div class="card bg-dark text-light shadow-lg">
+        <div class="card-header border-0">
+            <h2 class="mb-0"><i class="bi bi-eye me-2"></i>Detalles de la Orden</h2>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.id_mesa)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.id_mesa)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.id_plato)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.id_plato)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.id_promocion)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.id_promocion)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.id_combo)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.id_combo)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.nombre_cliente)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.nombre_cliente)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.fecha)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.fecha)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.estado)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.estado)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.comentario)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.comentario)</dd>
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.total)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.total)</dd>
+            </dl>
 
-<div>
-    <h4>Ordenes</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.id_mesa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.id_mesa)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.id_plato)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.id_plato)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.id_promocion)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.id_promocion)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.id_combo)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.id_combo)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.nombre_cliente)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.nombre_cliente)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.fecha)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.fecha)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.estado)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.estado)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.comentario)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.comentario)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.total)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.total)
-        </dd>
-    </dl>
+            <a asp-action="Edit" asp-route-id="@Model?.id_orden" class="btn btn-warning"><i class="bi bi-pencil"></i> Editar</a>
+            <a asp-action="Index" class="btn btn-outline-light ms-2">Volver</a>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.id_orden">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+
+<style>
+    body {
+        background: linear-gradient(to bottom, #2d1b00, #a66f00);
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
+
+    .card {
+        background-color: rgba(0, 0, 0, 0.3);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-header {
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 20px 20px 0 0;
+        font-weight: bold;
+        color: white;
+        border-bottom: none;
+        text-align: center;
+    }
+
+    .btn {
+        border-radius: 10px;
+    }
+
+    .btn-outline-light {
+        border-radius: 10px;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+
+    dl dt {
+        font-weight: bold;
+    }
+
+    dl dd {
+        color: #f8f9fa;
+    }
+</style>

@@ -3,54 +3,81 @@
 @{
     ViewData["Title"] = "Dashboard";
 
-    // Verificar autenticación de forma estricta
     if (!User.Identity.IsAuthenticated)
     {
         Context.Response.Redirect("/Auth/Login");
         return;
     }
-
-    // Estilos CSS integrados (sin usar sección)
-    var customStyles = @"
-        <style>
-            .user-icon {
-                margin: 0 auto;
-            }
-            .nav-link {
-                border-radius: 4px;
-                margin-bottom: 5px;
-            }
-            .nav-link:hover {
-                background-color: rgba(255,255,255,0.1);
-            }
-            .nav-link.active {
-                background-color: rgba(255,255,255,0.2);
-                font-weight: 500;
-            }
-            .min-vh-100 {
-                min-height: 100vh;
-            }
-            .logout-form {
-                display: inline;
-            }
-        </style>
-    ";
 }
 
-@Html.Raw(customStyles)
+<style>
+    body {
+        background: linear-gradient(to bottom, #2d1b00, #a66f00);
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
+
+    .card {
+        background-color: rgba(0, 0, 0, 0.3);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+    }
+
+    .card-header {
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 20px 20px 0 0;
+        font-weight: bold;
+        color: white;
+        border-bottom: none;
+        text-align: center;
+    }
+
+    .chart-container {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-link {
+        color: white;
+        border-radius: 10px;
+        margin-bottom: 5px;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+        background-color: #533f00;
+        color: white;
+    }
+
+    .min-vh-100 {
+        min-height: 100vh;
+    }
+
+    .logout-form {
+        display: inline;
+    }
+</style>
 
 <div class="container-fluid">
     <div class="row">
         <!-- Menú lateral -->
         <div class="col-md-2 bg-dark text-white min-vh-100 p-3">
-            <div class="user-info text-center mb-4">
-                <div class="user-icon bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
-                    <i class="fas fa-user fa-2x text-white"></i>
-                </div>
+            <div class="text-center mb-4">
+                <div class="mb-3">
+    <img src="~/images/login-background.png" alt="Logo" class="img-fluid rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+</div>
+
                 <h5 class="mb-1">@User.Identity.Name</h5>
                 <small class="text-muted">Administrador</small>
 
-                <!-- Formulario de cierre de sesión seguro -->
                 <form class="logout-form mt-3" asp-controller="Auth" asp-action="Logout" method="post" id="logoutForm">
                     <button type="submit" class="btn btn-outline-light btn-sm btn-block">
                         <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
@@ -61,135 +88,88 @@
             <hr class="bg-secondary">
 
             <nav class="nav flex-column">
-                <a href="/Home" class="nav-link text-white active">
-                    <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
-                </a>
-                <a href="/Mesas" class="nav-link text-white">
-                    <i class="fas fa-chair mr-2"></i> Mesas
-                </a>
-                <a href="/Platos" class="nav-link text-white">
-                    <i class="fas fa-utensils mr-2"></i> Platos
-                </a>
-                <a href="/Combos" class="nav-link text-white">
-                    <i class="fas fa-boxes mr-2"></i> Combos
-                </a>
-                <a href="/Ordenes" class="nav-link text-white">
-                    <i class="fas fa-receipt mr-2"></i> Órdenes
-                </a>
+                <a href="/Home" class="nav-link active"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a>
+                <a href="/Mesas" class="nav-link"><i class="fas fa-chair mr-2"></i> Mesas</a>
+                <a href="/Platos" class="nav-link"><i class="fas fa-utensils mr-2"></i> Platos</a>
+                <a href="/Combos" class="nav-link"><i class="fas fa-boxes mr-2"></i> Combos</a>
+                <a href="/Ordenes" class="nav-link"><i class="fas fa-receipt mr-2"></i> Órdenes</a>
             </nav>
         </div>
 
         <!-- Contenido principal -->
         <div class="col-md-10 p-4">
+            <h2><i class="fas fa-tachometer-alt text-white mr-2"></i> Dashboard</h2>
+            <p class="text-white-50">Resumen general del sistema</p>
+
             <div class="row mb-4">
-                <div class="col-md-12">
-                    <h2 class="mb-0"><i class="fas fa-tachometer-alt text-primary mr-2"></i> Dashboard</h2>
-                    <small class="text-muted">Resumen general del sistema</small>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-header">Combos</div>
+                        <div class="card-body text-center">
+                            <h3>@ViewData["CombosCount"]</h3>
+                            <a href="/Combos" class="btn btn-outline-light btn-sm mt-2">Ver más</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-header">Mesas</div>
+                        <div class="card-body text-center">
+                            <h3>@ViewData["MesasCount"]</h3>
+                            <span class="badge badge-success">@ViewData["MesasDisponibles"] Disp.</span>
+                            <span class="badge badge-danger">@ViewData["MesasOcupadas"] Ocup.</span>
+                            <a href="/Mesas" class="btn btn-outline-light btn-sm mt-2">Ver más</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-header">Órdenes</div>
+                        <div class="card-body text-center">
+                            <h3>@ViewData["OrdenesCount"]</h3>
+                            <p class="mt-2"><small>Total: @(((decimal)ViewData["TotalVentas"]).ToString("C"))</small></p>
+                            <a href="/Ordenes" class="btn btn-outline-light btn-sm">Ver más</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-header">Platos</div>
+                        <div class="card-body text-center">
+                            <h3>@ViewData["PlatosCount"]</h3>
+                            <a href="/Platos" class="btn btn-outline-light btn-sm mt-2">Ver más</a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Tarjetas de Resumen -->
             <div class="row">
-                <div class="col-md-3 mb-4">
-                    <div class="card border-primary shadow-sm h-100">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="card-title mb-0"><i class="fas fa-boxes mr-2"></i> Combos</h5>
-                        </div>
-                        <div class="card-body">
-                            <h3 class="card-text text-center">@ViewData["CombosCount"]</h3>
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            <a href="/Combos" class="btn btn-sm btn-outline-primary btn-block">Ver más</a>
-                        </div>
+                <div class="col-md-7">
+                    <div class="chart-container">
+                        <canvas id="dashboardChart" height="200"></canvas>
                     </div>
                 </div>
-
-                <div class="col-md-3 mb-4">
-                    <div class="card border-success shadow-sm h-100">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="card-title mb-0"><i class="fas fa-chair mr-2"></i> Mesas</h5>
-                        </div>
+                <div class="col-md-5">
+                    <div class="card">
+                        <div class="card-header">Órdenes Recientes</div>
                         <div class="card-body">
-                            <h3 class="card-text text-center">@ViewData["MesasCount"]</h3>
-                            <div class="d-flex justify-content-between mt-3">
-                                <span class="badge badge-success">@ViewData["MesasDisponibles"] Disp.</span>
-                                <span class="badge badge-danger">@ViewData["MesasOcupadas"] Ocup.</span>
-                            </div>
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            <a href="/Mesas" class="btn btn-sm btn-outline-success btn-block">Ver más</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-4">
-                    <div class="card border-warning shadow-sm h-100">
-                        <div class="card-header bg-warning text-white">
-                            <h5 class="card-title mb-0"><i class="fas fa-receipt mr-2"></i> Órdenes</h5>
-                        </div>
-                        <div class="card-body">
-                            <h3 class="card-text text-center">@ViewData["OrdenesCount"]</h3>
-                            <p class="card-text text-center mt-3">
-                                <small class="text-muted">Total: @(((decimal)ViewData["TotalVentas"]).ToString("C"))</small>
-                            </p>
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            <a href="/Ordenes" class="btn btn-sm btn-outline-warning btn-block">Ver más</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-4">
-                    <div class="card border-danger shadow-sm h-100">
-                        <div class="card-header bg-danger text-white">
-                            <h5 class="card-title mb-0"><i class="fas fa-utensils mr-2"></i> Platos</h5>
-                        </div>
-                        <div class="card-body">
-                            <h3 class="card-text text-center">@ViewData["PlatosCount"]</h3>
-                        </div>
-                        <div class="card-footer bg-transparent">
-                            <a href="/Platos" class="btn btn-sm btn-outline-danger btn-block">Ver más</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Gráficos y Estadísticas -->
-            <div class="row mt-4">
-                <div class="col-md-6 mb-4">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="card-title mb-0"><i class="fas fa-chart-bar mr-2"></i> Estadísticas</h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="myChart" width="100%" height="300"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6 mb-4">
-                    <div class="card shadow-sm h-100">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="card-title mb-0"><i class="fas fa-history mr-2"></i> Órdenes Recientes</h5>
-                        </div>
-                        <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead class="thead-light">
+                                <table class="table table-hover text-white">
+                                    <thead>
                                         <tr>
                                             <th>Cliente</th>
                                             <th>Fecha</th>
-                                            <th class="text-right">Total</th>
+                                            <th>Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach (var orden in (List<Ordenes>)ViewData["OrdenesRecientes"])
                                         {
-                                            <tr>
-                                                <td>@orden.nombre_cliente</td>
-                                                <td>@orden.fecha.ToString("dd/MM/yyyy HH:mm")</td>
-                                                <td class="text-right">@orden.total?.ToString("C")</td>
-                                            </tr>
+                                                <tr>
+                                                    <td>@orden.nombre_cliente</td>
+                                                    <td>@orden.fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                                    <td>@orden.total?.ToString("C")</td>
+                                                </tr>
                                         }
                                     </tbody>
                                 </table>
@@ -203,63 +183,63 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
-    <script>
-        // Gráfico de barras
-        var ctx = document.getElementById('myChart').getContext('2d');
-        var myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Combos', 'Mesas', 'Órdenes', 'Platos'],
-                datasets: [{
-                    label: 'Cantidad',
-                    data: [
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+        <script>
+            var ctx = document.getElementById('dashboardChart').getContext('2d');
+            var dashboardChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Combos', 'Mesas', 'Órdenes', 'Platos'],
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: [
         @ViewData["CombosCount"],
         @ViewData["MesasCount"],
         @ViewData["OrdenesCount"],
         @ViewData["PlatosCount"]
-                    ],
-                    backgroundColor: [
-                        'rgba(13, 110, 253, 0.7)',
-                        'rgba(25, 135, 84, 0.7)',
-                        'rgba(255, 193, 7, 0.7)',
-                        'rgba(220, 53, 69, 0.7)'
-                    ],
-                    borderColor: [
-                        'rgba(13, 110, 253, 1)',
-                        'rgba(25, 135, 84, 1)',
-                        'rgba(255, 193, 7, 1)',
-                        'rgba(220, 53, 69, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    }
+                        ],
+                        backgroundColor: [
+                            'rgba(255, 152, 0, 0.7)',
+                            'rgba(0, 188, 212, 0.7)',
+                            'rgba(233, 30, 99, 0.7)',
+                            'rgba(255, 193, 7, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 152, 0, 1)',
+                            'rgba(0, 188, 212, 1)',
+                            'rgba(233, 30, 99, 1)',
+                            'rgba(255, 193, 7, 1)'
+                        ],
+                        borderWidth: 1,
+                        borderRadius: 10
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        display: false
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: 'white' } }
                     }
                 }
-            }
-        });
+            });
 
-        // Manejar cierre de sesión
-        document.getElementById('logoutForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            if (confirm('¿Está seguro que desea cerrar sesión?')) {
-                this.submit();
-            }
-        });
-    </script>
+            document.getElementById('logoutForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                if (confirm('¿Está seguro que desea cerrar sesión?')) {
+                    this.submit();
+                }
+            });
+        </script>
 }

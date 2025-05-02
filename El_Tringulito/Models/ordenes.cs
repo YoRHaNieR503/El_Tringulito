@@ -26,5 +26,6 @@ namespace El_Tringulito.Models
         public string? comentario { get; set; }
 
         public decimal? total { get; set; }
+
     }
 }

@@ -4,64 +4,66 @@
     ViewData["Title"] = "Reservar Mesa";
 }
 
-<div class="container">
-    <h1 class="text-center my-4">Reservar Mesa @Model.nombre</h1>
+<div class="container-fluid" style="background: linear-gradient(135deg, #000, #d4af37); color: white;">
+    <div class="container py-5">
+        <h1 class="text-center my-4">Reservar Mesa @Model.nombre</h1>
 
-    <form asp-action="CrearOrden" method="post" class="card p-4 shadow" onsubmit="agregarCamposOcultos()">
-        <input type="hidden" asp-for="id_mesa" />
+        <form asp-action="CrearOrden" method="post" class="card p-4 shadow" onsubmit="agregarCamposOcultos()">
+            <input type="hidden" asp-for="id_mesa" />
 
-        <div class="form-group mb-3">
-            <label for="nombre_cliente" class="form-label">
-                Nombre del Cliente:
-                <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                   title="Ingrese el nombre del cliente para la reserva"></i>
-            </label>
-            <input type="text" id="nombre_cliente" name="nombre_cliente" class="form-control" required />
-        </div>
-
-        <div class="form-group mb-4">
-            <label class="form-label">
-                Agregar Productos:
-                <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                   title="Seleccione el tipo de producto que desea agregar"></i>
-            </label>
-            <div class="d-grid gap-2 d-md-block">
-                <button type="button" class="btn btn-primary me-2" onclick="cargarPlatos()">
-                    <i class="bi bi-egg-fried"></i> Platos
-                </button>
-                <button type="button" class="btn btn-success me-2" onclick="cargarPromociones()">
-                    <i class="bi bi-tag"></i> Promociones
-                </button>
-                <button type="button" class="btn btn-warning" onclick="cargarCombos()">
-                    <i class="bi bi-collection"></i> Combos
-                </button>
+            <div class="form-group mb-3">
+                <label for="nombre_cliente" class="form-label">
+                    Nombre del Cliente:
+                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                       title="Ingrese el nombre del cliente para la reserva"></i>
+                </label>
+                <input type="text" id="nombre_cliente" name="nombre_cliente" class="form-control" required />
             </div>
-        </div>
 
-        <div id="productosSeleccionados" class="mb-4">
-            <h4>
-                Productos Seleccionados:
-                <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                   title="Aquí aparecerán todos los productos agregados. Puede agregar comentarios para cada uno"></i>
-            </h4>
-            <ul class="list-group" id="listaSeleccionados">
-                <!-- Aquí se mostrarán los productos seleccionados -->
-            </ul>
-        </div>
+            <div class="form-group mb-4">
+                <label class="form-label">
+                    Agregar Productos:
+                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                       title="Seleccione el tipo de producto que desea agregar"></i>
+                </label>
+                <div class="d-grid gap-2 d-md-block">
+                    <button type="button" class="btn btn-primary me-2" onclick="cargarPlatos()">
+                        <i class="bi bi-egg-fried"></i> Platos
+                    </button>
+                    <button type="button" class="btn btn-success me-2" onclick="cargarPromociones()">
+                        <i class="bi bi-tag"></i> Promociones
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="cargarCombos()">
+                        <i class="bi bi-collection"></i> Combos
+                    </button>
+                </div>
+            </div>
 
-        <div class="form-group mb-3">
-            <label for="total" class="form-label">
-                Total:
-                <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right"
-                   title="Total calculado automáticamente de todos los productos"></i>
-            </label>
-            <input type="text" id="total" name="total" class="form-control" readonly />
-        </div>
+            <div id="productosSeleccionados" class="mb-4">
+                <h4>
+                    Productos Seleccionados:
+                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                       title="Aquí aparecerán todos los productos agregados. Puede agregar comentarios para cada uno"></i>
+                </h4>
+                <ul class="list-group" id="listaSeleccionados">
+                    <!-- Aquí se mostrarán los productos seleccionados -->
+                </ul>
+            </div>
 
-        <button type="submit" class="btn btn-success w-100">
-            <i class="bi bi-check-circle"></i> Crear Orden
-        </button>
-    </form>
+            <div class="form-group mb-3">
+                <label for="total" class="form-label">
+                    Total:
+                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" data-bs-placement="right"
+                       title="Total calculado automáticamente de todos los productos"></i>
+                </label>
+                <input type="text" id="total" name="total" class="form-control" readonly />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">
+                <i class="bi bi-check-circle"></i> Crear Orden
+            </button>
+        </form>
+    </div>
 </div>
 
 <!-- Modal para mostrar productos -->
@@ -86,6 +88,30 @@
 
 @section Styles {
     <style>
+        body {
+            background: linear-gradient(135deg, #000, #d4af37);
+            color: white;
+        }
+
+        .card {
+            background-color: #343a40;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-label, .form-control, .btn {
+            color: white;
+        }
+
+        .form-control {
+            background-color: #495057;
+            border: 1px solid #6c757d;
+        }
+
+        .btn-primary, .btn-success, .btn-warning {
+            border-radius: 5px;
+        }
+
         .producto-item {
             transition: all 0.3s ease;
         }
@@ -111,6 +137,19 @@
             cursor: pointer;
             color: #6c757d;
         }
+
+        .modal-content {
+            background-color: #343a40;
+            border-radius: 10px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #6c757d;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #6c757d;
+        }
     </style>
 }
 
@@ -123,7 +162,7 @@
         let productosSeleccionados = [];
 
         // Inicializar tooltips
-        $(document).ready(function(){
+        $(document).ready(function () {
             $('[data-bs-toggle="tooltip"]').tooltip();
         });
 
@@ -150,19 +189,19 @@
             data.forEach(function (producto) {
                 let id = producto.id_plato || producto.id_promocion || producto.id_combo;
                 html += `
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h5 class="card-title">${producto.nombre}</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">$${producto.precio.toFixed(2)}</h6>
-                                <p class="card-text text-truncate">${producto.descripcion || 'Sin descripción'}</p>
-                                <button type="button" class="btn btn-primary w-100"
-                                    onclick="agregarProducto(${id}, '${titulo.toLowerCase()}', '${escapeHtml(producto.nombre)}', ${producto.precio})">
-                                    <i class="bi bi-plus-circle"></i> Agregar
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${producto.nombre}</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">$${producto.precio.toFixed(2)}</h6>
+                                        <p class="card-text text-truncate">${producto.descripcion || 'Sin descripción'}</p>
+                                        <button type="button" class="btn btn-primary w-100"
+                                            onclick="agregarProducto(${id}, '${titulo.toLowerCase()}', '${escapeHtml(producto.nombre)}', ${producto.precio})">
+                                            <i class="bi bi-plus-circle"></i> Agregar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>`;
             });
             html += "</div>";
             $("#modalContent").html(html);
@@ -191,32 +230,32 @@
             });
 
             var productoHTML = `
-                <li class="list-group-item producto-item p-0" id="${itemId}">
-                    <div class="p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>${nombre}</strong> - $${precio.toFixed(2)}
-                                <i class="bi bi-info-circle info-icon ms-2" data-bs-toggle="tooltip"
-                                   title="Producto ${tipo === 'platos' ? 'plato' : tipo}"></i>
+                        <li class="list-group-item producto-item p-0" id="${itemId}">
+                            <div class="p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <strong>${nombre}</strong> - $${precio.toFixed(2)}
+                                        <i class="bi bi-info-circle info-icon ms-2" data-bs-toggle="tooltip"
+                                           title="Producto ${tipo === 'platos' ? 'plato' : tipo}"></i>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn p-1"
+                                        onclick="eliminarProducto('${itemId}', ${precio})"
+                                        data-bs-toggle="tooltip" title="Eliminar producto">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="form-group mt-2">
+                                    <label for="comentario-${itemId}" class="small text-muted">
+                                        <i class="bi bi-chat-left-text"></i> Comentarios/Especificaciones:
+                                        <i class="bi bi-info-circle info-icon ms-1" data-bs-toggle="tooltip"
+                                           title="Ingrese aquí cualquier modificación o instrucción especial para este producto"></i>
+                                    </label>
+                                    <textarea id="comentario-${itemId}" class="form-control form-control-sm comentario-input"
+                                              rows="2" placeholder="Ej: Sin picante, bien cocido, etc."
+                                              onchange="actualizarComentario('${itemId}')"></textarea>
+                                </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn p-1"
-                                onclick="eliminarProducto('${itemId}', ${precio})"
-                                data-bs-toggle="tooltip" title="Eliminar producto">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                        <div class="form-group mt-2">
-                            <label for="comentario-${itemId}" class="small text-muted">
-                                <i class="bi bi-chat-left-text"></i> Comentarios/Especificaciones:
-                                <i class="bi bi-info-circle info-icon ms-1" data-bs-toggle="tooltip"
-                                   title="Ingrese aquí cualquier modificación o instrucción especial para este producto"></i>
-                            </label>
-                            <textarea id="comentario-${itemId}" class="form-control form-control-sm comentario-input"
-                                      rows="2" placeholder="Ej: Sin picante, bien cocido, etc."
-                                      onchange="actualizarComentario('${itemId}')"></textarea>
-                        </div>
-                    </div>
-                </li>`;
+                        </li>`;
 
             $("#listaSeleccionados").append(productoHTML);
             $('[data-bs-toggle="tooltip"]').tooltip();
@@ -248,10 +287,10 @@
             $("input[name^='productos']").remove();
             productosSeleccionados.forEach((producto, index) => {
                 var camposOcultos = `
-                    <input type="hidden" name="productos[${index}].id" value="${producto.id}" />
-                    <input type="hidden" name="productos[${index}].tipo" value="${producto.tipo}" />
-                    <input type="hidden" name="productos[${index}].comentario" value="${producto.comentario || ''}" />
-                `;
+                            <input type="hidden" name="productos[${index}].id" value="${producto.id}" />
+                            <input type="hidden" name="productos[${index}].tipo" value="${producto.tipo}" />
+                            <input type="hidden" name="productos[${index}].comentario" value="${producto.comentario || ''}" />
+                        `;
                 $("#productosSeleccionados").append(camposOcultos);
             });
         }

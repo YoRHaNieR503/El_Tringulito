@@ -21,25 +21,32 @@ namespace El_Tringulito.Controllers
         // GET: Ordenes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.ordenes.ToListAsync());
+            var ordenes = await _context.ordenes.ToListAsync();
+            ViewBag.OrdenesParaLlevar = ordenes.Where(o => o.id_mesa == null || o.id_mesa == 0).ToList();
+            ViewBag.OrdenesEnLugar = ordenes.Where(o => o.id_mesa != null && o.id_mesa > 0).ToList();
+            return View(ordenes);
         }
 
-        // GET: Ordenes/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // GET: Ordenes/CreateParaLlevar
+        public IActionResult CreateParaLlevar()
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            return View();
+        }
 
-            var ordenes = await _context.ordenes
-                .FirstOrDefaultAsync(m => m.id_orden == id);
-            if (ordenes == null)
+        // POST: Ordenes/CreateParaLlevar
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateParaLlevar(
+            [Bind("id_orden,id_plato,id_promocion,id_combo,nombre_cliente,fecha,estado,comentario,total")] Ordenes orden)
+        {
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                orden.id_mesa = null; // Explícitamente establecido como null
+                _context.Add(orden);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
-
-            return View(ordenes);
+            return View(orden);
         }
 
         // GET: Ordenes/Create
@@ -49,14 +56,18 @@ namespace El_Tringulito.Controllers
         }
 
         // POST: Ordenes/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("id_orden,id_mesa,id_plato,id_promocion,id_combo,nombre_cliente,fecha,estado,comentario,total")] Ordenes ordenes)
+        public async Task<IActionResult> Create(
+            [Bind("id_orden,id_mesa,id_plato,id_promocion,id_combo,nombre_cliente,fecha,estado,comentario,total")] Ordenes ordenes)
         {
             if (ModelState.IsValid)
             {
+                // Validación adicional para mesa
+                if (ordenes.id_mesa == 0)
+                {
+                    ordenes.id_mesa = null;
+                }
                 _context.Add(ordenes);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -64,33 +75,28 @@ namespace El_Tringulito.Controllers
             return View(ordenes);
         }
 
-        // GET: Ordenes/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        // Los demás métodos (Details, Edit, Delete) permanecen igual...
+        public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var ordenes = await _context.ordenes.FindAsync(id);
-            if (ordenes == null)
-            {
-                return NotFound();
-            }
-            return View(ordenes);
+            var orden = await _context.ordenes.FirstOrDefaultAsync(m => m.id_orden == id);
+            return orden == null ? NotFound() : View(orden);
         }
 
-        // POST: Ordenes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var orden = await _context.ordenes.FindAsync(id);
+            return orden == null ? NotFound() : View(orden);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("id_orden,id_mesa,id_plato,id_promocion,id_combo,nombre_cliente,fecha,estado,comentario,total")] Ordenes ordenes)
         {
-            if (id != ordenes.id_orden)
-            {
-                return NotFound();
-            }
+            if (id != ordenes.id_orden) return NotFound();
 
             if (ModelState.IsValid)
             {
@@ -101,48 +107,28 @@ namespace El_Tringulito.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!OrdenesExists(ordenes.id_orden))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!OrdenesExists(ordenes.id_orden)) return NotFound();
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
             return View(ordenes);
         }
 
-        // GET: Ordenes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var ordenes = await _context.ordenes
-                .FirstOrDefaultAsync(m => m.id_orden == id);
-            if (ordenes == null)
-            {
-                return NotFound();
-            }
-
-            return View(ordenes);
+            var orden = await _context.ordenes.FirstOrDefaultAsync(m => m.id_orden == id);
+            return orden == null ? NotFound() : View(orden);
         }
 
-        // POST: Ordenes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ordenes = await _context.ordenes.FindAsync(id);
-            if (ordenes != null)
-            {
-                _context.ordenes.Remove(ordenes);
-            }
+            var orden = await _context.ordenes.FindAsync(id);
+            if (orden != null) _context.ordenes.Remove(orden);
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));

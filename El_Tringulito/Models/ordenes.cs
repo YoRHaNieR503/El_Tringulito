@@ -9,13 +9,13 @@ namespace El_Tringulito.Models
         [Key]
         public int id_orden { get; set; }
 
-        public int id_mesa { get; set; }
+        public int? id_mesa { get; set; } // Cambiado a nullable
 
-        public int? id_plato { get; set; } // Asegúrate de que sea nullable
+        public int? id_plato { get; set; }
 
-        public int? id_promocion { get; set; } // Asegúrate de que sea nullable
+        public int? id_promocion { get; set; }
 
-        public int? id_combo { get; set; } // Asegúrate de que sea nullable
+        public int? id_combo { get; set; }
 
         public string? nombre_cliente { get; set; }
 
@@ -26,6 +26,5 @@ namespace El_Tringulito.Models
         public string? comentario { get; set; }
 
         public decimal? total { get; set; }
-
     }
 }

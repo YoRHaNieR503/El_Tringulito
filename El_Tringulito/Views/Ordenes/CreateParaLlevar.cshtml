@@ -1,0 +1,161 @@
+﻿@model El_Tringulito.Models.Ordenes
+
+@{
+    ViewData["Title"] = "Crear Orden Para Llevar";
+}
+
+<style>
+    body {
+        background: linear-gradient(to bottom, #2d1b00, #a66f00);
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
+
+    .card {
+        background-color: rgba(0, 0, 0, 0.3);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-header {
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 20px 20px 0 0;
+        font-weight: bold;
+        color: white;
+        border-bottom: none;
+        text-align: center;
+    }
+
+    .form-label {
+        color: #FFC107;
+        font-weight: bold;
+    }
+
+    .form-control {
+        background-color: rgba(0, 0, 0, 0.2);
+        border: 1px solid #FFC107;
+        color: white;
+        border-radius: 10px;
+    }
+
+        .form-control:focus {
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            border-color: #FFC107;
+            box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+        }
+
+    .btn-primary {
+        background-color: #FFC107;
+        border: none;
+        color: #000;
+        font-weight: bold;
+        border-radius: 10px;
+    }
+
+        .btn-primary:hover {
+            background-color: #ffca28;
+            transform: translateY(-2px);
+        }
+
+    .text-danger {
+        color: #ff6b6b !important;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header">
+                    <h2><i class="bi bi-bag-plus me-2"></i>@ViewData["Title"]</h2>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CreateParaLlevar">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row mb-3">Add-Migration AllowNullForIdMesa
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="nombre_cliente" class="form-label">Nombre del Cliente</label>
+                                    <input asp-for="nombre_cliente" class="form-control" placeholder="Nombre del cliente" />
+                                    <span asp-validation-for="nombre_cliente" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="fecha" class="form-label">Fecha</label>
+                                    <input asp-for="fecha" class="form-control" type="datetime-local" />
+                                    <span asp-validation-for="fecha" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="id_plato" class="form-label">ID Plato</label>
+                                    <input asp-for="id_plato" class="form-control" placeholder="Opcional" />
+                                    <span asp-validation-for="id_plato" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="id_promocion" class="form-label">ID Promoción</label>
+                                    <input asp-for="id_promocion" class="form-control" placeholder="Opcional" />
+                                    <span asp-validation-for="id_promocion" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="id_combo" class="form-label">ID Combo</label>
+                                    <input asp-for="id_combo" class="form-control" placeholder="Opcional" />
+                                    <span asp-validation-for="id_combo" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="estado" class="form-label">Estado</label>
+                                    <select asp-for="estado" class="form-control">
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Completado">Completado</option>
+                                        <option value="Cancelado">Cancelado</option>
+                                    </select>
+                                    <span asp-validation-for="estado" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="total" class="form-label">Total</label>
+                                    <input asp-for="total" class="form-control" placeholder="0.00" />
+                                    <span asp-validation-for="total" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="comentario" class="form-label">Comentarios</label>
+                            <textarea asp-for="comentario" class="form-control" rows="3" placeholder="Especificaciones especiales..."></textarea>
+                            <span asp-validation-for="comentario" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle me-2"></i>Crear Orden</button>
+                            <a asp-action="Index" class="btn btn-secondary btn-lg ms-3"><i class="bi bi-arrow-left-circle me-2"></i>Volver</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

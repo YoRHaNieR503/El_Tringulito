@@ -1,13 +1,5 @@
-﻿@using Microsoft.AspNetCore.Authorization
-@inject IAuthorizationService AuthorizationService
-@{
+﻿@{
     ViewData["Title"] = "Dashboard";
-
-    if (!User.Identity.IsAuthenticated)
-    {
-        Context.Response.Redirect("/Auth/Login");
-        return;
-    }
 }
 
 <style>
@@ -25,9 +17,9 @@
         transition: transform 0.3s ease;
     }
 
-    .card:hover {
-        transform: translateY(-5px);
-    }
+        .card:hover {
+            transform: translateY(-5px);
+        }
 
     .card-header {
         background-color: rgba(0, 0, 0, 0.5);
@@ -51,11 +43,11 @@
         margin-bottom: 5px;
     }
 
-    .nav-link:hover,
-    .nav-link.active {
-        background-color: #533f00;
-        color: white;
-    }
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: #533f00;
+            color: white;
+        }
 
     .min-vh-100 {
         min-height: 100vh;
@@ -68,12 +60,11 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Menú lateral -->
         <div class="col-md-2 bg-dark text-white min-vh-100 p-3">
             <div class="text-center mb-4">
                 <div class="mb-3">
-    <img src="~/images/login-background.png" alt="Logo" class="img-fluid rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
-</div>
+                    <img src="~/images/login-background.png" alt="Logo" class="img-fluid rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                </div>
 
                 <h5 class="mb-1">@User.Identity.Name</h5>
                 <small class="text-muted">Administrador</small>
@@ -96,7 +87,6 @@
             </nav>
         </div>
 
-        <!-- Contenido principal -->
         <div class="col-md-10 p-4">
             <h2><i class="fas fa-tachometer-alt text-white mr-2"></i> Dashboard</h2>
             <p class="text-white-50">Resumen general del sistema</p>
@@ -165,11 +155,11 @@
                                     <tbody>
                                         @foreach (var orden in (List<Ordenes>)ViewData["OrdenesRecientes"])
                                         {
-                                                <tr>
-                                                    <td>@orden.nombre_cliente</td>
-                                                    <td>@orden.fecha.ToString("dd/MM/yyyy HH:mm")</td>
-                                                    <td>@orden.total?.ToString("C")</td>
-                                                </tr>
+                                            <tr>
+                                                <td>@orden.nombre_cliente</td>
+                                                <td>@orden.fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td>@orden.total?.ToString("C")</td>
+                                            </tr>
                                         }
                                     </tbody>
                                 </table>
@@ -183,63 +173,64 @@
 </div>
 
 @section Scripts {
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
-        <script>
-            var ctx = document.getElementById('dashboardChart').getContext('2d');
-            var dashboardChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Combos', 'Mesas', 'Órdenes', 'Platos'],
-                    datasets: [{
-                        label: 'Cantidad',
-                        data: [
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script>
+        var ctx = document.getElementById('dashboardChart').getContext('2d');
+        var dashboardChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Combos', 'Mesas', 'Órdenes', 'Platos'],
+                datasets: [{
+                    label: 'Cantidad',
+                    data: [
         @ViewData["CombosCount"],
         @ViewData["MesasCount"],
         @ViewData["OrdenesCount"],
         @ViewData["PlatosCount"]
-                        ],
-                        backgroundColor: [
-                            'rgba(255, 152, 0, 0.7)',
-                            'rgba(0, 188, 212, 0.7)',
-                            'rgba(233, 30, 99, 0.7)',
-                            'rgba(255, 193, 7, 0.7)'
-                        ],
-                        borderColor: [
-                            'rgba(255, 152, 0, 1)',
-                            'rgba(0, 188, 212, 1)',
-                            'rgba(233, 30, 99, 1)',
-                            'rgba(255, 193, 7, 1)'
-                        ],
-                        borderWidth: 1,
-                        borderRadius: 10
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: 'white' },
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        },
-                        x: {
-                            ticks: { color: 'white' },
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        }
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 152, 0, 0.7)',
+                        'rgba(0, 188, 212, 0.7)',
+                        'rgba(233, 30, 99, 0.7)',
+                        'rgba(255, 193, 7, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 152, 0, 1)',
+                        'rgba(0, 188, 212, 1)',
+                        'rgba(233, 30, 99, 1)',
+                        'rgba(255, 193, 7, 1)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: 'white' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
                     },
-                    plugins: {
-                        legend: { labels: { color: 'white' } }
+                    x: {
+                        ticks: { color: 'white' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
                     }
+                },
+                plugins: {
+                    legend: { labels: { color: 'white' } }
                 }
-            });
+            }
+        });
 
-            document.getElementById('logoutForm').addEventListener('submit', function (e) {
-                e.preventDefault();
-                if (confirm('¿Está seguro que desea cerrar sesión?')) {
-                    this.submit();
-                }
-            });
-        </script>
+        document.getElementById('logoutForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            if (confirm('¿Está seguro que desea cerrar sesión?')) {
+                this.submit();
+            }
+        });
+    </script>
+
 }

@@ -19,6 +19,16 @@ namespace El_Tringulito.Models
     [StringLength(255)]
     [Column("contrasenia")] 
         public string Contrasenia { get; set; }
+
+    [Required]
+    [StringLength(20)]
+    [Column("rol")]
+    public string Rol { get; set; }
+
+
     }
+
+
+
 }
 

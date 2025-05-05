@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.SignalR;
 using El_Tringulito.Hubs;
 using System.Collections.Generic;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace El_Tringulito.Controllers
 {
+    [Authorize(Roles = "admin,cocina")]
     public class CocinaController : Controller
     {
         private readonly ElTriangulitoDBContext _context;
@@ -100,7 +102,6 @@ namespace El_Tringulito.Controllers
             }
 
             await _context.SaveChangesAsync();
-
             await _hubContext.Clients.All.SendAsync("OrdenTomada", mesaId);
 
             TempData["SuccessMessage"] = $"Orden de la mesa {mesaId} tomada con éxito";
@@ -120,7 +121,6 @@ namespace El_Tringulito.Controllers
             }
 
             await _context.SaveChangesAsync();
-
             await _hubContext.Clients.All.SendAsync("OrdenEntregada", mesaId);
 
             TempData["SuccessMessage"] = $"Orden de la mesa {mesaId} marcada como entregada";
@@ -130,33 +130,18 @@ namespace El_Tringulito.Controllers
         private async Task<string> ObtenerNombreProducto(Ordenes orden)
         {
             if (orden.id_plato != null)
+                return (await _context.platos.FindAsync(orden.id_plato))?.nombre ?? "Plato no encontrado";
+            if (orden.id_promocion != null)
             {
-                var plato = await _context.platos.FindAsync(orden.id_plato);
-                return plato?.nombre ?? "Plato no encontrado";
-            }
-            else if (orden.id_promocion != null)
-            {
-                var promocion = await _context.promociones.FindAsync(orden.id_promocion);
-                if (promocion != null)
-                {
-                    if (promocion.id_plato != null)
-                    {
-                        var plato = await _context.platos.FindAsync(promocion.id_plato);
-                        return plato?.nombre + " (Promoción)" ?? "Promoción no válida";
-                    }
-                    else if (promocion.id_combo != null)
-                    {
-                        var combo = await _context.combos.FindAsync(promocion.id_combo);
-                        return combo?.nombre + " (Promoción)" ?? "Promoción no válida";
-                    }
-                }
+                var promo = await _context.promociones.FindAsync(orden.id_promocion);
+                if (promo?.id_plato != null)
+                    return (await _context.platos.FindAsync(promo.id_plato))?.nombre + " (Promoción)";
+                if (promo?.id_combo != null)
+                    return (await _context.combos.FindAsync(promo.id_combo))?.nombre + " (Promoción)";
                 return "Promoción sin producto asociado";
             }
-            else if (orden.id_combo != null)
-            {
-                var combo = await _context.combos.FindAsync(orden.id_combo);
-                return combo?.nombre ?? "Combo no encontrado";
-            }
+            if (orden.id_combo != null)
+                return (await _context.combos.FindAsync(orden.id_combo))?.nombre ?? "Combo no encontrado";
             return "Producto no identificado";
         }
 
@@ -169,7 +154,9 @@ namespace El_Tringulito.Controllers
         }
     }
 
-    public class OrdenCocinaViewModel
+
+
+public class OrdenCocinaViewModel
     {
         public int MesaId { get; set; }
         public string MesaNombre { get; set; }
@@ -190,4 +177,5 @@ namespace El_Tringulito.Controllers
         public decimal Precio { get; set; }
         public string NombreCliente { get; set; }
     }
+
 }

@@ -6,9 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
 using El_Tringulito.Hubs;
+using Microsoft.AspNetCore.Authorization;
 
 namespace El_Tringulito.Controllers
 {
+    [Authorize(Roles = "admin,mesero")]
     public class MesasMeseroController : Controller
     {
         private readonly ElTriangulitoDBContext _context;

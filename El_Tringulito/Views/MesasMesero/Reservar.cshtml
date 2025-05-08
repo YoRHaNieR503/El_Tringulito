@@ -1,12 +1,12 @@
 ﻿@model El_Tringulito.Models.Mesas
 
 @{
-    ViewData["Title"] = "Reservar Mesa";
+    ViewData["Title"] = "Reservar";
 }
 
 <div class="container-fluid" style="background: linear-gradient(135deg, #000, #d4af37); color: white;">
     <div class="container py-5">
-        <h1 class="text-center my-4">Reservar Mesa @Model.nombre</h1>
+        <h1 class="text-center my-4">Reservar @Model.nombre</h1>
 
         <form asp-action="CrearOrden" method="post" class="card p-4 shadow" onsubmit="agregarCamposOcultos()">
             <input type="hidden" asp-for="id_mesa" />

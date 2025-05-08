@@ -4,10 +4,94 @@
     ViewData["Title"] = "Ver Orden";
     bool puedeCancelar = ViewBag.EstadoGeneral == "Pendiente";
     bool tieneOrden = ViewBag.EstadoGeneral != "Sin Orden";
+    bool esParaLlevar = ViewBag.EsParaLlevar ?? false;
+    string nombreEntidad = esParaLlevar ? "Para Llevar" : $"{Model.nombre}";
 }
 
-<div class="container" style="background: linear-gradient(to right, #000000, #D4AF37); padding: 30px;">
-    <h1 class="text-center my-4 text-white">Mesa @Model.nombre - @(tieneOrden ? $"Orden {ViewBag.EstadoGeneral}" : "Sin Orden")</h1>
+<style>
+    body {
+        background-color: #1E1E2F;
+        color: #FFFFFF;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .card {
+        background-color: #2C2C3A;
+        border-radius: 12px;
+    }
+
+    .btn-primary {
+        background-color: #A259FF;
+        border-color: #A259FF;
+    }
+
+        .btn-primary:hover {
+            background-color: #913FEF;
+        }
+
+    .btn-success {
+        background-color: #FFD700;
+        color: #000;
+        border: none;
+    }
+
+        .btn-success:hover {
+            background-color: #FFC107;
+            color: #000;
+        }
+
+    .btn-danger {
+        background-color: #FF4C4C;
+        border-color: #FF4C4C;
+    }
+
+    .btn-para-llevar {
+        background-color: #4CAF50;
+        border-color: #4CAF50;
+    }
+
+        .btn-para-llevar:hover {
+            background-color: #3e8e41;
+        }
+
+    .badge-pendiente {
+        background-color: #FFD700;
+        color: #000;
+    }
+
+    .badge-enproceso {
+        background-color: #007BFF;
+    }
+
+    .badge-entregada {
+        background-color: #28A745;
+    }
+
+    .badge-para-llevar {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .text-white {
+        color: #FFFFFF !important;
+    }
+
+    .modal-content {
+        background-color: #2C2C3A;
+        color: #FFF;
+    }
+
+    .modal-header {
+        border-bottom: 1px solid #444;
+    }
+
+    .modal-footer {
+        border-top: 1px solid #444;
+    }
+</style>
+
+<div class="container py-5">
+    <h1 class="text-center my-4">@nombreEntidad - @(tieneOrden ? $"Orden {ViewBag.EstadoGeneral}" : "Sin Orden")</h1>
 
     @if (TempData["ErrorMessage"] != null)
     {
@@ -25,13 +109,18 @@
         </div>
     }
 
-    <div class="card p-4 shadow mb-4" style="background-color: #2C2C2C; border-radius: 10px;">
+    <div class="card p-4 shadow mb-4">
         @if (tieneOrden)
         {
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="badge bg-@(ViewBag.EstadoGeneral == "Pendiente" ? "warning" : "success") fs-6">@ViewBag.EstadoGeneral</span>
+                @{
+                    var estado = ViewBag.EstadoGeneral.ToString();
+                    var claseBadge = estado == "Pendiente" ? "badge-pendiente" :
+                    estado == "En Proceso" ? "badge-enproceso" : "badge-entregada";
+                }
+                <span class="badge @claseBadge fs-6">@estado</span>
 
-                @if (puedeCancelar)
+                @if (puedeCancelar && !esParaLlevar)
                 {
                     <form asp-action="CancelarOrden" method="post" onsubmit="return confirm('¿Cancelar esta orden?');">
                         <input type="hidden" name="id_mesa" value="@Model.id_mesa" />
@@ -39,7 +128,7 @@
                     </form>
                 }
 
-                @if (ViewBag.PuedeFinalizar)
+                @if (ViewBag.PuedeFinalizar && !esParaLlevar)
                 {
                     <form asp-action="FinalizarOrden" method="post" class="d-inline" onsubmit="return confirm('¿Finalizar esta orden?');">
                         <input type="hidden" name="id_mesa" value="@Model.id_mesa" />
@@ -50,7 +139,10 @@
         }
 
         <form asp-action="ActualizarOrden" method="post" onsubmit="agregarCamposOcultos()">
-            <input type="hidden" asp-for="id_mesa" />
+            @if (!esParaLlevar)
+            {
+                <input type="hidden" asp-for="id_mesa" />
+            }
 
             <div class="form-group mb-3">
                 <label class="text-white">Nombre del Cliente:</label>
@@ -61,7 +153,14 @@
             <div class="form-group mb-4">
                 <button type="button" class="btn btn-primary me-2" onclick="cargarPlatos()">Platos</button>
                 <button type="button" class="btn btn-success me-2" onclick="cargarPromociones()">Promociones</button>
-                <button type="button" class="btn btn-warning" onclick="cargarCombos()">Combos</button>
+                <button type="button" class="btn btn-warning text-dark" onclick="cargarCombos()">Combos</button>
+
+                @if (!esParaLlevar && tieneOrden)
+                {
+                    <button type="button" class="btn btn-para-llevar" onclick="agregarParaLlevar()">
+                        <i class="bi bi-bag-plus"></i> Agregar para llevar
+                    </button>
+                }
             </div>
 
             <div id="productosSeleccionados" class="mb-4">
@@ -72,19 +171,26 @@
                         foreach (var item in ViewBag.OrdenesActivas)
                         {
                             string estado = item.Orden.estado;
+                            string estadoClase = estado == "Pendiente" ? "badge-pendiente" :
+                            estado == "En Proceso" ? "badge-enproceso" : "badge-entregada";
+
                             string itemId = $"prod_{item.Orden.id_orden}";
-                            <li class="list-group-item producto-item p-0" id="@itemId">
+                            <li class="list-group-item producto-item p-0 bg-dark text-white" id="@itemId">
                                 <div class="p-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div>
-                                            <strong class="text-white">@item.NombreProducto</strong> - $@item.Orden.total?.ToString("F2")
+                                            <strong>@item.NombreProducto</strong> - $@item.Orden.total?.ToString("F2")
                                             <span class="badge bg-secondary ms-2">@item.TipoProducto</span>
-                                            <span class="badge bg-@(estado == "Pendiente" ? "warning" : estado == "En Proceso" ? "primary" : "success") ms-2">@estado</span>
+                                            <span class="badge @estadoClase ms-2">@estado</span>
+                                            @if (item.Orden.para_llevar)
+                                            {
+                                                <span class="badge badge-para-llevar ms-2">Para llevar</span>
+                                            }
                                         </div>
                                     </div>
                                     @if (!string.IsNullOrEmpty(item.Orden.comentario))
                                     {
-                                        <p class="small text-white">@item.Orden.comentario</p>
+                                        <p class="small">@item.Orden.comentario</p>
                                     }
                                 </div>
                             </li>
@@ -100,14 +206,14 @@
             </div>
 
             <div class="d-flex justify-content-between">
-                <a asp-action="Index" class="btn btn-secondary">Volver a Mesas</a>
+                <a asp-action="Index" class="btn btn-secondary">Volver</a>
                 <button type="submit" class="btn btn-success">@(tieneOrden ? "Actualizar Orden" : "Crear Orden")</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal para productos normales -->
 <div class="modal fade" id="productosModal" tabindex="-1" aria-labelledby="productosModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -123,11 +229,39 @@
     </div>
 </div>
 
+<!-- Modal para productos para llevar -->
+<div class="modal fade" id="paraLlevarModal" tabindex="-1" aria-labelledby="paraLlevarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paraLlevarModalLabel">Agregar producto para llevar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Seleccione el tipo de producto:</label>
+                    <select class="form-select" id="tipoProductoLlevar">
+                        <option value="platos">Plato</option>
+                        <option value="promociones">Promoción</option>
+                        <option value="combos">Combo</option>
+                    </select>
+                </div>
+                <div id="contenidoParaLlevar"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="confirmarProductoLlevar()">Agregar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         let total = @(tieneOrden ? ViewBag.TotalOrdenes : 0);
         let productosSeleccionados = [];
-        let puedeEliminarNuevos = true; // control para productos nuevos
+        let puedeEliminarNuevos = true;
+        let productoParaLlevarSeleccionado = null;
 
         function escapeHtml(text) {
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
@@ -137,21 +271,80 @@
         function cargarPromociones() { $.get("/MesasMesero/GetPromociones", data => mostrarProductosEnModal(data, "promociones")); }
         function cargarCombos() { $.get("/MesasMesero/GetCombos", data => mostrarProductosEnModal(data, "combos")); }
 
+        function agregarParaLlevar() {
+            $('#paraLlevarModal').modal('show');
+            cargarProductosParaLlevar('platos');
+        }
+
+        $('#tipoProductoLlevar').change(function() {
+            const tipo = $(this).val();
+            cargarProductosParaLlevar(tipo);
+        });
+
+        function cargarProductosParaLlevar(tipo) {
+            let url = '';
+            switch(tipo) {
+                case 'platos': url = '/MesasMesero/GetPlatos'; break;
+                case 'promociones': url = '/MesasMesero/GetPromociones'; break;
+                case 'combos': url = '/MesasMesero/GetCombos'; break;
+            }
+
+            $.get(url, function(data) {
+                let html = '<div class="mb-3">';
+                html += '<label class="form-label">Seleccione un producto:</label>';
+                html += '<select class="form-select" id="productoLlevar">';
+
+                data.forEach(p => {
+                    let id = p.id_plato || p.id_promocion || p.id_combo;
+                    let nombre = p.nombre;
+                    let precio = p.precio;
+                    html += `<option value="${id}" data-nombre="${nombre}" data-precio="${precio}">${nombre} - $${precio.toFixed(2)}</option>`;
+                });
+
+                html += '</select>';
+                html += '</div>';
+
+                $('#contenidoParaLlevar').html(html);
+            });
+        }
+
+        function confirmarProductoLlevar() {
+            const select = $('#productoLlevar');
+            const option = select.find('option:selected');
+
+            productoParaLlevarSeleccionado = {
+                id: parseInt(select.val()),
+                tipo: $('#tipoProductoLlevar').val(),
+                nombre: option.data('nombre') + " (Para llevar - Mesa " + @Model.id_mesa + ")",
+                precio: parseFloat(option.data('precio')),
+                paraLlevar: true
+            };
+
+            agregarProducto(
+                productoParaLlevarSeleccionado.id,
+                productoParaLlevarSeleccionado.tipo,
+                productoParaLlevarSeleccionado.nombre,
+                productoParaLlevarSeleccionado.precio
+            );
+
+            $('#paraLlevarModal').modal('hide');
+        }
+
         function mostrarProductosEnModal(data, tipo) {
             let html = `<h5 class="mb-3 text-capitalize">${tipo}</h5><div class="row">`;
             data.forEach(p => {
                 let id = p.id_plato || p.id_promocion || p.id_combo;
                 html += `
-                            <div class="col-md-4 mb-3">
-                                <div class="card h-100">
-                                    <div class="card-body">
-                                        <h5>${p.nombre}</h5>
-                                        <h6 class="text-muted">$${p.precio.toFixed(2)}</h6>
-                                        <p class="text-truncate">${p.descripcion || 'Sin descripción'}</p>
-                                        <button class="btn btn-primary w-100" onclick="agregarProducto(${id}, '${tipo}', '${escapeHtml(p.nombre)}', ${p.precio})">Agregar</button>
-                                    </div>
-                                </div>
-                            </div>`;
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5>${p.nombre}</h5>
+                                <h6 class="text-muted">$${p.precio.toFixed(2)}</h6>
+                                <p class="text-truncate">${p.descripcion || 'Sin descripción'}</p>
+                                <button class="btn btn-primary w-100" onclick="agregarProducto(${id}, '${tipo}', '${escapeHtml(p.nombre)}', ${p.precio})">Agregar</button>
+                            </div>
+                        </div>
+                    </div>`;
             });
             html += "</div>";
             $("#modalContent").html(html);
@@ -160,26 +353,41 @@
 
         function agregarProducto(id, tipo, nombre, precio) {
             const itemId = `nuevo_${Date.now()}`;
-            productosSeleccionados.push({ id, tipo, nombre, precio, comentario: '', itemId });
+            const esParaLlevar = nombre.includes("Para llevar") || (productoParaLlevarSeleccionado && productoParaLlevarSeleccionado.paraLlevar);
+
+            productosSeleccionados.push({
+                id,
+                tipo,
+                nombre,
+                precio,
+                comentario: '',
+                itemId,
+                paraLlevar: esParaLlevar
+            });
 
             const html = `
-                        <li class="list-group-item producto-item p-0" id="${itemId}">
-                            <div class="p-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div><strong>${nombre}</strong> - $${precio.toFixed(2)} <span class="badge bg-secondary ms-2">${tipo}</span> <span class="badge bg-primary ms-2">En Proceso</span></div>
-                                    <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn p-1"
-                                        onclick="eliminarProducto('${itemId}', ${precio})">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                                <div class="form-group mt-2">
-                                    <label class="small text-muted">Comentarios:</label>
-                                    <textarea class="form-control form-control-sm comentario-input" rows="2"
-                                              onchange="actualizarComentario('${itemId}', this.value)"
-                                              placeholder="Ej: Sin picante, bien cocido, etc."></textarea>
-                                </div>
+                <li class="list-group-item producto-item p-0 bg-dark text-white" id="${itemId}">
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <strong>${nombre}</strong> - $${precio.toFixed(2)}
+                                <span class="badge bg-secondary ms-2">${tipo}</span>
+                                <span class="badge bg-primary ms-2">En Proceso</span>
+                                ${esParaLlevar ? '<span class="badge badge-para-llevar ms-2">Para llevar</span>' : ''}
                             </div>
-                        </li>`;
+                            <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn p-1"
+                                onclick="eliminarProducto('${itemId}', ${precio})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <div class="form-group mt-2">
+                            <label class="small text-muted">Comentarios:</label>
+                            <textarea class="form-control form-control-sm comentario-input" rows="2"
+                                      onchange="actualizarComentario('${itemId}', this.value)"
+                                      placeholder="Ej: Sin picante, bien cocido, etc."></textarea>
+                        </div>
+                    </div>
+                </li>`;
             $("#listaSeleccionados").append(html);
             total += precio;
             $("#total").val(total.toFixed(2));
@@ -192,7 +400,7 @@
         }
 
         function eliminarProducto(itemId, precio) {
-            if (!puedeEliminarNuevos) return; // deshabilitar después de actualizar
+            if (!puedeEliminarNuevos) return;
 
             $(`#${itemId}`).remove();
             const index = productosSeleccionados.findIndex(p => p.itemId === itemId);
@@ -204,15 +412,16 @@
         }
 
         function agregarCamposOcultos() {
-            puedeEliminarNuevos = false; // desactivar eliminación al actualizar
+            puedeEliminarNuevos = false;
             $("input[name^='productos']").remove();
             productosSeleccionados.forEach((p, i) => {
                 $("#productosSeleccionados").append(`
-                            <input type="hidden" name="productos[${i}].id" value="${p.id}" />
-                            <input type="hidden" name="productos[${i}].tipo" value="${p.tipo}" />
-                            <input type="hidden" name="productos[${i}].comentario" value="${escapeHtml(p.comentario)}" />
-                            <input type="hidden" name="productos[${i}].precio" value="${p.precio}" />
-                        `);
+                    <input type="hidden" name="productos[${i}].id" value="${p.id}" />
+                    <input type="hidden" name="productos[${i}].tipo" value="${p.tipo}" />
+                    <input type="hidden" name="productos[${i}].comentario" value="${escapeHtml(p.comentario)}" />
+                    <input type="hidden" name="productos[${i}].precio" value="${p.precio}" />
+                    <input type="hidden" name="productos[${i}].paraLlevar" value="${p.paraLlevar}" />
+                `);
             });
         }
     </script>

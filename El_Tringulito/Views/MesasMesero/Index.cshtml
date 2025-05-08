@@ -2,12 +2,13 @@
 
 @{
     ViewData["Title"] = "Mesas";
+    var ordenesParaLlevar = ViewBag.OrdenesParaLlevar as List<El_Tringulito.Models.Ordenes>;
 }
 
 <div class="container mt-5">
     <div class="card bg-dark text-light shadow-lg">
         <div class="card-header border-0">
-            <h2 class="mb-0"><i class="bi bi-table me-2"></i>Estado de Mesas</h2>
+            <h2 class="mb-0"><i class="bi bi-table me-2"></i>Estado de ordenes</h2>
         </div>
         <div class="card-body">
             <table class="table table-dark table-hover">
@@ -31,17 +32,59 @@
                             <td class="text-end">
                                 @if (mesa.estado == "Libre")
                                 {
-                                    <a asp-action="Reservar" asp-route-id="@mesa.id_mesa" class="btn btn-sm btn-success"><i class="bi bi-bookmark-check"></i> Reservar</a>
+                                    <a asp-action="Reservar" asp-route-id="@mesa.id_mesa" class="btn btn-sm btn-success">
+                                        <i class="bi bi-bookmark-check"></i> Reservar
+                                    </a>
                                 }
                                 else
                                 {
-                                    <a asp-action="VerOrden" asp-route-id="@mesa.id_mesa" class="btn btn-sm btn-secondary"><i class="bi bi-receipt-cutoff"></i> Ver Orden</a>
+                                    <a asp-action="VerOrden" asp-route-id="@mesa.id_mesa" class="btn btn-sm btn-secondary">
+                                        <i class="bi bi-receipt-cutoff"></i> Ver Orden
+                                    </a>
                                 }
                             </td>
                         </tr>
                     }
+
+                    @if (ordenesParaLlevar != null && ordenesParaLlevar.Any())
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center bg-secondary text-warning fw-bold">Órdenes Para Llevar</td>
+                        </tr>
+
+                        @foreach (var grupo in ordenesParaLlevar
+                       .Where(o => o.codigo_orden != null)
+                       .GroupBy(o => o.codigo_orden))
+                        {
+                            var orden = grupo.First();
+                            var estado = grupo.Any(o => o.estado == "En Proceso") ? "En Proceso" :
+                            grupo.Any(o => o.estado == "Entregada") ? "Entregada" : "Pendiente";
+
+                            <tr>
+                                <td>-</td>
+                                <td>@orden.nombre_cliente</td>
+                                <td>
+                                    <span class="badge @(estado == "Pendiente" ? "bg-warning text-dark" :
+                                                         estado == "En Proceso" ? "bg-primary" : "bg-success")">
+                                        @estado
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="VerOrdenParaLlevar" asp-route-id="@orden.codigo_orden" class="btn btn-sm btn-info">
+                                        <i class="bi bi-receipt-cutoff"></i> Ver Orden
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
                 </tbody>
             </table>
+
+            <div class="text-end mt-4">
+                <a asp-action="ParaLlevar" class="btn btn-warning text-dark">
+                    <i class="bi bi-box-seam"></i> Nueva Orden Para Llevar
+                </a>
+            </div>
         </div>
     </div>
 </div>

@@ -1,0 +1,146 @@
+﻿@model El_Tringulito.Models.Ordenes
+
+@{
+    ViewData["Title"] = "Orden Para Llevar";
+}
+
+<div class="container-fluid" style="background: linear-gradient(135deg, #000, #d4af37); color: white; min-height: 100vh;">
+    <div class="container py-5">
+        <div class="card shadow-lg p-4" style="background-color: #1c1c1c; border-radius: 12px;">
+            <h2 class="text-center mb-4 text-warning">
+                <i class="bi bi-bag-fill me-2"></i>Orden Para Llevar
+            </h2>
+
+            <form asp-action="CrearOrdenParaLlevar" method="post" onsubmit="agregarCamposOcultos()">
+                <div class="mb-3">
+                    <label class="form-label text-light" for="nombre_cliente">Nombre del Cliente:</label>
+                    <input type="text" id="nombre_cliente" name="nombre_cliente" class="form-control bg-dark text-white border-warning" required />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-light">Agregar Productos:</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-light" onclick="cargarPlatos()">
+                            <i class="bi bi-egg-fried"></i> Platos
+                        </button>
+                        <button type="button" class="btn btn-outline-success" onclick="cargarPromociones()">
+                            <i class="bi bi-tag-fill"></i> Promociones
+                        </button>
+                        <button type="button" class="btn btn-outline-warning" onclick="cargarCombos()">
+                            <i class="bi bi-collection-fill"></i> Combos
+                        </button>
+                    </div>
+                </div>
+
+                <div id="productosSeleccionados" class="mb-4">
+                    <h5 class="text-light"><i class="bi bi-cart4 me-2"></i>Productos Seleccionados:</h5>
+                    <ul class="list-group" id="listaSeleccionados"></ul>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-light" for="total">Total:</label>
+                    <input type="text" id="total" name="total" class="form-control bg-dark text-white border-warning" readonly />
+                </div>
+
+                <button type="submit" class="btn btn-warning w-100 fw-bold">
+                    <i class="bi bi-check-circle"></i> Crear Orden Para Llevar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="productosModal" tabindex="-1" aria-labelledby="productosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white border border-warning">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-warning" id="productosModalLabel">Seleccionar Productos</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalContent"></div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let total = 0;
+        let productosSeleccionados = [];
+
+        function cargarPlatos() { $.get("/MesasMesero/GetPlatos", data => mostrarProductosEnModal(data, "platos")); }
+        function cargarPromociones() { $.get("/MesasMesero/GetPromociones", data => mostrarProductosEnModal(data, "promociones")); }
+        function cargarCombos() { $.get("/MesasMesero/GetCombos", data => mostrarProductosEnModal(data, "combos")); }
+
+        function mostrarProductosEnModal(data, tipo) {
+            let html = `<div class="row">`;
+            data.forEach(p => {
+                let id = p.id_plato || p.id_promocion || p.id_combo;
+                html += `
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-dark h-100">
+                            <div class="card-body">
+                                <h5>${p.nombre}</h5>
+                                <h6 class="text-muted">$${p.precio.toFixed(2)}</h6>
+                                <p class="text-truncate">${p.descripcion || 'Sin descripción'}</p>
+                                <button class="btn btn-dark w-100" onclick="agregarProducto(${id}, '${tipo}', '${p.nombre}', ${p.precio})">
+                                    <i class="bi bi-plus-circle"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            html += "</div>";
+            $("#modalContent").html(html);
+            new bootstrap.Modal(document.getElementById('productosModal')).show();
+        }
+
+        function agregarProducto(id, tipo, nombre, precio) {
+            const itemId = `nuevo_${Date.now()}`;
+            productosSeleccionados.push({ id, tipo, nombre, precio, comentario: '', itemId });
+
+            const html = `
+                <li class="list-group-item bg-dark text-white border-warning mb-2" id="${itemId}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span><strong>${nombre}</strong> - $${precio.toFixed(2)}</span>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarProducto('${itemId}', ${precio})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    <textarea class="form-control form-control-sm bg-secondary text-white mt-2"
+                        placeholder="Comentarios..." oninput="actualizarComentario('${itemId}', this.value)"></textarea>
+                </li>`;
+            $("#listaSeleccionados").append(html);
+            total += precio;
+            $("#total").val(total.toFixed(2));
+            bootstrap.Modal.getInstance(document.getElementById('productosModal')).hide();
+        }
+
+        function actualizarComentario(itemId, comentario) {
+            const producto = productosSeleccionados.find(p => p.itemId === itemId);
+            if (producto) producto.comentario = comentario;
+        }
+
+        function eliminarProducto(itemId, precio) {
+            $(`#${itemId}`).remove();
+            const index = productosSeleccionados.findIndex(p => p.itemId === itemId);
+            if (index !== -1) {
+                total -= productosSeleccionados[index].precio;
+                productosSeleccionados.splice(index, 1);
+            }
+            $("#total").val(total.toFixed(2));
+        }
+
+        function agregarCamposOcultos() {
+            $("input[name^='productos']").remove();
+            productosSeleccionados.forEach((p, i) => {
+                $("#productosSeleccionados").append(`
+                    <input type="hidden" name="productos[${i}].id" value="${p.id}" />
+                    <input type="hidden" name="productos[${i}].tipo" value="${p.tipo}" />
+                    <input type="hidden" name="productos[${i}].comentario" value="${p.comentario || ''}" />
+                    <input type="hidden" name="productos[${i}].precio" value="${p.precio}" />
+                `);
+            });
+        }
+    </script>
+}

@@ -26,5 +26,8 @@ namespace El_Tringulito.Models
         public string? comentario { get; set; }
 
         public decimal? total { get; set; }
+
+        public bool para_llevar { get; set; } = false;
+        public Guid? codigo_orden { get; set; }
     }
 }

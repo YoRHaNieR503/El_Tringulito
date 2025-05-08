@@ -6,119 +6,126 @@
 
 <style>
     body {
-        background: linear-gradient(to bottom, #2d1b00, #a66f00);
+        background: linear-gradient(to bottom, #1a120b, #3c2a21);
         font-family: 'Segoe UI', sans-serif;
-        color: white;
-    }
-
-    .container-full {
-        min-height: 100vh;
-        padding: 40px;
+        color: #f5f5f5;
     }
 
     .main-title {
-        font-size: 2.5rem;
+        font-size: 2rem;
         font-weight: 700;
-        text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        color: #f5f5f5;
+        text-shadow: 1px 1px 3px #000;
     }
-
-        .main-title i {
-            font-size: 2.2rem;
-            color: #ffc107;
-        }
 
     .card {
-        background-color: rgba(0, 0, 0, 0.3);
+        background-color: #2c2c2c;
         border: none;
-        border-radius: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-        transition: transform 0.3s ease;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        font-size: 0.85rem;
     }
 
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-    .card-header {
-        border-radius: 20px 20px 0 0;
-        font-weight: bold;
-        color: white;
-        border-bottom: none;
-    }
-
+    .card-header,
     .card-footer {
-        border-radius: 0 0 20px 20px;
-        background-color: rgba(255, 255, 255, 0.1);
-        color: white;
+        padding: 0.6rem 0.9rem;
     }
 
-    .bg-warning, .bg-success, .bg-orange {
-        color: white !important;
+    .card-body {
+        padding: 0.4rem 0.9rem;
+    }
+
+    .tipo-orden-badge {
+        position: absolute;
+        top: -10px;
+        right: 15px;
+        padding: 4px 10px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        border-radius: 20px;
+        background-color: #FFD700;
+        color: #000;
+    }
+
+    .badge-para-llevar {
+        background-color: #4a8fe7;
+    }
+
+    .badge-consumo-sitio {
+        background-color: #28a745;
+    }
+
+    .badge-mesa-origen {
+        background-color: #9b59b6;
+    }
+
+    .producto-para-llevar {
+        background-color: #2a3b52;
+    }
+
+    .producto-consumo-sitio {
+        background-color: #20382a;
     }
 
     .list-group-item {
-        background-color: rgba(255, 255, 255, 0.05);
-        color: white;
+        background-color: transparent;
+        color: #fff;
         border: none;
+        padding: 0.6rem 0.9rem;
     }
 
-        .list-group-item .text-muted {
-            color: #d1d1d1 !important;
-        }
-
     .dropdown-menu {
-        background-color: #333;
+        background-color: #2c2c2c;
+        border: 1px solid #444;
     }
 
     .dropdown-item {
-        color: white;
+        color: #f5f5f5;
     }
 
-        .dropdown-item:hover,
-        .dropdown-item.active {
-            background-color: #533f00;
-            color: white;
+        .dropdown-item:hover {
+            background-color: #3a3a3a;
         }
 
-    .alert-info {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: white;
-        border: none;
-    }
-
     .bg-orange {
-        background-color: #e08b00 !important;
+        background-color: #e67e22 !important;
+        color: #fff !important;
     }
 
-    .badge.bg-orange {
-        background-color: #e08b00 !important;
-        color: white;
+    .badge {
+        padding: 3px 8px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+    }
+
+    .fw-bold {
+        font-weight: 600;
+    }
+
+    .small-text {
+        font-size: 0.75rem;
     }
 </style>
 
-<div class="container-fluid container-full">
+<div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="main-title"><i class="bi bi-egg-fried me-2 text-warning"></i> Panel de Cocina</h2>
         <div>
-            <h2 class="main-title"><i class="bi bi-egg-fried"></i>Panel de Cocina</h2>
-            <p class="text-white-50 mb-0">Gestión de órdenes en tiempo real</p>
-        </div>
-        <div class="d-flex gap-2">
-            <button id="refresh-btn" class="btn btn-outline-light">
+            <button id="refresh-btn" class="btn btn-outline-light me-2">
                 <i class="bi bi-arrow-clockwise"></i> Actualizar
             </button>
-            <div class="dropdown">
-                <button class="btn btn-outline-light dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <div class="btn-group">
+                <button class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
                     <i class="bi bi-funnel"></i> Filtrar
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item filter-option active" href="#" data-filter="all">Todas las órdenes</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item filter-option" href="#" data-filter="pendiente"><span class="badge bg-warning me-2"></span>Pendientes</a></li>
-                    <li><a class="dropdown-item filter-option" href="#" data-filter="proceso"><span class="badge bg-orange me-2"></span>En proceso</a></li>
-                    <li><a class="dropdown-item filter-option" href="#" data-filter="entregada"><span class="badge bg-success me-2"></span>Entregadas</a></li>
+                    <li><a class="dropdown-item filter-option active" href="#" data-filter="all">Todas</a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-filter="pendiente">Pendientes</a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-filter="proceso">En Proceso</a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-filter="entregada">Entregadas</a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-filter="llevar">Para llevar</a></li>
+                    <li><a class="dropdown-item filter-option" href="#" data-filter="consumo">Consumo en sitio</a></li>
                 </ul>
             </div>
         </div>
@@ -126,71 +133,88 @@
 
     @if (!Model.Any())
     {
-        <div class="alert alert-info text-center shadow">
-            <i class="bi bi-emoji-smile fs-3"></i>
-            <p class="mb-0">No hay órdenes activas.</p>
+        <div class="alert alert-info text-center">
+            <i class="bi bi-emoji-smile fs-3"></i> No hay órdenes activas.
         </div>
     }
     else
     {
-        <div class="row g-4">
-            @foreach (var ordenMesa in Model)
+        <div class="row g-3">
+            @foreach (var orden in Model)
             {
-                <div class="col-12 col-md-6" data-status="@ordenMesa.EstadoGeneral.ToLower()">
-                    <div class="card">
-                        <div class="card-header @GetHeaderClass(ordenMesa.EstadoGeneral)">
-                            <div class="d-flex justify-content-between align-items-center">
+                <div class="col-md-6" data-status="@orden.EstadoGeneral?.ToLower()" data-llevar="@orden.TieneParaLlevar" data-consumo="@orden.TieneParaConsumirEnSitio">
+                    <div class="card position-relative">
+                        <span class="tipo-orden-badge">
+                            @(orden.TieneParaLlevar && orden.TieneParaConsumirEnSitio ? "Mixta"
+                                : orden.TieneParaLlevar ? "Para llevar"
+                                : "Consumo en sitio")
+                        </span>
+
+                        <div class="card-header @GetHeaderClass(orden.EstadoGeneral)">
+                            <div class="d-flex justify-content-between">
                                 <div>
-                                    <h5 class="mb-0">Mesa @ordenMesa.MesaNombre</h5>
-                                    <small><i class="bi bi-person"></i> @ordenMesa.NombreCliente</small>
+                                    <div class="fw-bold">
+                                        @(orden.MesaId == -1 ? "Orden Para Llevar" : orden.MesaNombre)
+                                    </div>
+                                    <div class="small-text"><i class="bi bi-person"></i> @orden.NombreCliente</div>
                                 </div>
                                 <div class="text-end">
-                                    <span class="badge @GetStatusBadgeClass(ordenMesa.EstadoGeneral)">@ordenMesa.EstadoGeneral</span>
-                                    <span class="badge bg-light text-dark ms-1"><i class="bi bi-clock"></i> @ordenMesa.Ordenes.First().Fecha.ToString("hh:mm tt")</span>
+                                    <span class="badge @GetStatusBadgeClass(orden.EstadoGeneral)">@orden.EstadoGeneral</span>
+                                    @if (orden.Ordenes?.FirstOrDefault()?.Fecha != null)
+                                    {
+                                        <div class="small-text"><i class="bi bi-clock"></i> @orden.Ordenes.First().Fecha.ToString("hh:mm tt")</div>
+                                    }
                                 </div>
                             </div>
                         </div>
+
+
                         <div class="card-body">
                             <ul class="list-group list-group-flush">
-                                @foreach (var orden in ordenMesa.Ordenes)
+                                @foreach (var item in orden.Ordenes)
                                 {
-                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <li class="list-group-item @(item.ParaLlevar ? "producto-para-llevar" : "producto-consumo-sitio") d-flex justify-content-between align-items-start">
                                         <div>
-                                            <strong>@orden.NombreProducto</strong>
-                                            <div class="small text-muted">@orden.TipoProducto</div>
-                                            @if (!string.IsNullOrEmpty(orden.Comentario))
+                                            <strong>@item.NombreProducto</strong>
+                                            <span class="badge ms-2 @(item.ParaLlevar ? "badge-para-llevar" : "badge-consumo-sitio")">
+                                                <i class="bi @(item.ParaLlevar ? "bi-bag-check" : "bi-egg-fried")"></i>
+                                                @(item.ParaLlevar ? "Para llevar" : "En sitio")
+                                            </span>
+                                            @if (!string.IsNullOrEmpty(item.MesaNombre) && item.ParaLlevar && orden.MesaId != -1)
                                             {
-                                                <div class="mt-1 small text-info"><i class="bi bi-chat-left-text"></i> @orden.Comentario</div>
+                                                <span class="badge badge-mesa-origen ms-2"><i class="bi bi-table"></i> @item.MesaNombre</span>
+                                            }
+                                            <div class="small-text text-muted">@item.TipoProducto</div>
+                                            @if (!string.IsNullOrEmpty(item.Comentario))
+                                            {
+                                                <div class="text-info small-text"><i class="bi bi-chat-left-text"></i> @item.Comentario</div>
                                             }
                                         </div>
                                         <div class="text-end">
-                                            <span class="fw-bold text-success">$@orden.Precio.ToString("N2")</span><br />
-                                            <span class="badge @GetItemStatusBadgeClass(orden.Estado)">@orden.Estado</span>
+                                            <div class="fw-bold text-success">$@item.Precio.ToString("0.00")</div>
+                                            <span class="badge @GetItemStatusBadgeClass(item.Estado)">@item.Estado</span>
                                         </div>
                                     </li>
                                 }
                             </ul>
                         </div>
-                        <div class="card-footer">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-bold">Total: $@ordenMesa.Total.ToString("N2")</span>
-                                <div>
-                                    @if (ordenMesa.EstadoGeneral == "Pendiente")
-                                    {
-                                        <form asp-action="TomarOrden" method="post" class="d-inline">
-                                            <input type="hidden" name="mesaId" value="@ordenMesa.MesaId" />
-                                            <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-check-circle"></i> Tomar</button>
-                                        </form>
-                                    }
-                                    else if (ordenMesa.EstadoGeneral == "En Proceso")
-                                    {
-                                        <form asp-action="EntregarOrden" method="post" class="d-inline">
-                                            <input type="hidden" name="mesaId" value="@ordenMesa.MesaId" />
-                                            <button type="submit" class="btn btn-outline-success btn-sm"><i class="bi bi-check2-all"></i> Entregar</button>
-                                        </form>
-                                    }
-                                </div>
-                            </div>
+
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Total: $@orden.Total.ToString("0.00")</span>
+                            @if (orden.EstadoGeneral == "Pendiente")
+                            {
+                                <form asp-action="TomarOrden" method="post">
+                                    <input type="hidden" name="mesaId" value="@orden.MesaId" />
+                                    <button class="btn btn-outline-primary btn-sm">Tomar</button>
+                                </form>
+                            }
+                            else if (orden.EstadoGeneral == "En Proceso")
+                            {
+                                <form asp-action="EntregarOrden" method="post">
+                                    <input type="hidden" name="mesaId" value="@orden.MesaId" />
+                                    <button class="btn btn-outline-success btn-sm">Entregar</button>
+                                </form>
+                            }
                         </div>
                     </div>
                 </div>
@@ -200,38 +224,70 @@
 </div>
 
 @functions {
-    string GetHeaderClass(string estado)
-    {
-        return estado switch
-        {
-            "Pendiente" => "bg-warning",
-            "En Proceso" => "bg-orange", 
-            "Entregada" => "bg-success",
-            _ => "bg-secondary"
-        };
-    }
-
-    string GetStatusBadgeClass(string estado)
-    {
-        return estado switch
+    string GetHeaderClass(string estado) =>
+        estado switch
         {
             "Pendiente" => "bg-warning text-dark",
-            "En Proceso" => "bg-orange text-white", 
+            "En Proceso" => "bg-orange text-white",
             "Entregada" => "bg-success text-white",
             _ => "bg-secondary text-white"
         };
-    }
 
-    string GetItemStatusBadgeClass(string estado)
-    {
-        return estado switch
+    string GetStatusBadgeClass(string estado) =>
+        estado switch
         {
             "Pendiente" => "bg-warning text-dark",
-            "En Proceso" => "bg-orange text-white", 
+            "En Proceso" => "bg-orange text-white",
             "Entregada" => "bg-success text-white",
             _ => "bg-secondary text-white"
         };
-    }
+
+    string GetItemStatusBadgeClass(string estado) =>
+        estado switch
+        {
+            "Pendiente" => "bg-warning text-dark",
+            "En Proceso" => "bg-orange text-white",
+            "Entregada" => "bg-success text-white",
+            _ => "bg-secondary text-white"
+        };
 }
 
+@section Scripts {
+    <script>
+        $(function () {
+            $('.filter-option').click(function (e) {
+                e.preventDefault();
+                const filtro = $(this).data('filter');
+                $('.filter-option').removeClass('active');
+                $(this).addClass('active');
 
+                $('[data-status]').each(function () {
+                    const estado = $(this).data('status');
+                    const llevar = $(this).data('llevar') === true || $(this).data('llevar') === "true";
+                    const sitio = $(this).data('consumo') === true || $(this).data('consumo') === "true";
+
+                    if (filtro === 'all' ||
+                        (filtro === 'llevar' && llevar) ||
+                        (filtro === 'consumo' && sitio) ||
+                        estado === filtro) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            });
+
+            $('#refresh-btn').click(() => location.reload());
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/cocinaHub")
+                .build();
+
+            connection.on("NuevaOrdenCreada", () => location.reload());
+            connection.on("OrdenTomada", () => location.reload());
+            connection.on("OrdenEntregada", () => location.reload());
+
+            connection.start().catch(err => console.error(err.toString()));
+        });
+    </script>
+}

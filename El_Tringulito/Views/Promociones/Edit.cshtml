@@ -1,0 +1,54 @@
+﻿@model El_Tringulito.Models.Promociones
+
+@{
+    ViewData["Title"] = "Editar Promoción";
+}
+
+<h1>Editar Promoción</h1>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="id_promocion" />
+
+            <div class="form-group">
+                <label for="id_plato" class="control-label">Plato (opcional)</label>
+                @Html.DropDownList("id_plato", ViewBag.Platos as SelectList, "-- Seleccionar plato --", new { @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label for="id_combo" class="control-label">Combo (opcional)</label>
+                @Html.DropDownList("id_combo", ViewBag.Combos as SelectList, "-- Seleccionar combo --", new { @class = "form-control" })
+            </div>
+
+            <div class="form-group">
+                <label asp-for="fecha_inicio" class="control-label"></label>
+                <input asp-for="fecha_inicio" class="form-control" type="date" />
+                <span asp-validation-for="fecha_inicio" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="fecha_fin" class="control-label"></label>
+                <input asp-for="fecha_fin" class="form-control" type="date" />
+                <span asp-validation-for="fecha_fin" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Descuento (%)</label>
+                <input type="number" name="descuento" class="form-control" min="0" max="100" required />
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Guardar Cambios" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

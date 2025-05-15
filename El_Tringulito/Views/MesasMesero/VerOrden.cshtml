@@ -8,87 +8,95 @@
     string nombreEntidad = esParaLlevar ? "Para Llevar" : $"{Model.nombre}";
 }
 
-<style>
-    body {
-        background-color: #1E1E2F;
-        color: #FFFFFF;
-        font-family: 'Segoe UI', sans-serif;
-    }
-
-    .card {
-        background-color: #2C2C3A;
-        border-radius: 12px;
-    }
-
-    .btn-primary {
-        background-color: #A259FF;
-        border-color: #A259FF;
-    }
-
-        .btn-primary:hover {
-            background-color: #913FEF;
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #1E1E2F;
+            color: #FFFFFF;
+            font-family: 'Segoe UI', sans-serif;
         }
 
-    .btn-success {
-        background-color: #FFD700;
-        color: #000;
-        border: none;
-    }
+        .card {
+            background-color: #2C2C3A;
+            border-radius: 12px;
+        }
 
-        .btn-success:hover {
-            background-color: #FFC107;
+        .btn-primary {
+            background-color: #A259FF;
+            border-color: #A259FF;
+        }
+
+            .btn-primary:hover {
+                background-color: #913FEF;
+            }
+
+        .btn-success {
+            background-color: #FFD700;
+            color: #000;
+            border: none;
+        }
+
+            .btn-success:hover {
+                background-color: #FFC107;
+                color: #000;
+            }
+
+        .btn-danger {
+            background-color: #FF4C4C;
+            border-color: #FF4C4C;
+        }
+
+        .btn-para-llevar {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+            .btn-para-llevar:hover {
+                background-color: #3e8e41;
+            }
+
+        .badge-pendiente {
+            background-color: #FFD700;
             color: #000;
         }
 
-    .btn-danger {
-        background-color: #FF4C4C;
-        border-color: #FF4C4C;
-    }
-
-    .btn-para-llevar {
-        background-color: #4CAF50;
-        border-color: #4CAF50;
-    }
-
-        .btn-para-llevar:hover {
-            background-color: #3e8e41;
+        .badge-enproceso {
+            background-color: #007BFF;
         }
 
-    .badge-pendiente {
-        background-color: #FFD700;
-        color: #000;
-    }
+        .badge-entregada {
+            background-color: #28A745;
+        }
 
-    .badge-enproceso {
-        background-color: #007BFF;
-    }
+        .badge-para-llevar {
+            background-color: #17a2b8;
+            color: white;
+        }
 
-    .badge-entregada {
-        background-color: #28A745;
-    }
+        .text-white {
+            color: #FFFFFF !important;
+        }
 
-    .badge-para-llevar {
-        background-color: #17a2b8;
-        color: white;
-    }
+        .modal-content {
+            background-color: #2C2C3A;
+            color: #FFF;
+        }
 
-    .text-white {
-        color: #FFFFFF !important;
-    }
+        .modal-header {
+            border-bottom: 1px solid #444;
+        }
 
-    .modal-content {
-        background-color: #2C2C3A;
-        color: #FFF;
-    }
+        .modal-footer {
+            border-top: 1px solid #444;
+        }
 
-    .modal-header {
-        border-bottom: 1px solid #444;
-    }
-
-    .modal-footer {
-        border-top: 1px solid #444;
-    }
-</style>
+        .bi-info-circle {
+            cursor: pointer;
+            margin-left: 5px;
+        }
+    </style>
+}
 
 <div class="container py-5">
     <h1 class="text-center my-4">@nombreEntidad - @(tieneOrden ? $"Orden {ViewBag.EstadoGeneral}" : "Sin Orden")</h1>
@@ -145,26 +153,42 @@
             }
 
             <div class="form-group mb-3">
-                <label class="text-white">Nombre del Cliente:</label>
+                <label class="text-white">
+                    Nombre del Cliente:
+                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="Nombre visible en la cuenta del cliente."></i>
+                </label>
                 <input type="text" id="nombre_cliente" name="nombre_cliente" class="form-control"
                        value="@ViewBag.NombreCliente" required @(ViewBag.EstadoGeneral == "En Proceso" ? "readonly" : "") />
             </div>
 
             <div class="form-group mb-4">
-                <button type="button" class="btn btn-primary me-2" onclick="cargarPlatos()">Platos</button>
-                <button type="button" class="btn btn-success me-2" onclick="cargarPromociones()">Promociones</button>
-                <button type="button" class="btn btn-warning text-dark" onclick="cargarCombos()">Combos</button>
-
-                @if (!esParaLlevar && tieneOrden)
-                {
-                    <button type="button" class="btn btn-para-llevar" onclick="agregarParaLlevar()">
-                        <i class="bi bi-bag-plus"></i> Agregar para llevar
+                <label class="text-white">
+                    Agregar Productos:
+                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="Seleccione productos desde estas opciones."></i>
+                </label>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <button type="button" class="btn btn-primary" onclick="cargarPlatos()">
+                        <i class="bi bi-egg-fried"></i> Platos
                     </button>
-                }
+                    <button type="button" class="btn btn-success" onclick="cargarPromociones()">
+                        <i class="bi bi-tag"></i> Promociones
+                    </button>
+                    <button type="button" class="btn btn-warning text-dark" onclick="cargarCombos()">
+                        <i class="bi bi-collection"></i> Combos
+                    </button>
+                    @if (!esParaLlevar && tieneOrden)
+                    {
+                        <button type="button" class="btn btn-para-llevar" onclick="agregarParaLlevar()">
+                            <i class="bi bi-bag-plus"></i> Agregar para llevar
+                        </button>
+                    }
+                </div>
             </div>
-
             <div id="productosSeleccionados" class="mb-4">
-                <h4 class="text-white">Productos Seleccionados:</h4>
+                <h4 class="text-white">
+                    Productos Seleccionados:
+                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="Lista completa de productos de la orden."></i>
+                </h4>
                 <ul class="list-group" id="listaSeleccionados">
                     @if (tieneOrden)
                     {
@@ -190,7 +214,7 @@
                                     </div>
                                     @if (!string.IsNullOrEmpty(item.Orden.comentario))
                                     {
-                                        <p class="small">@item.Orden.comentario</p>
+                                        <p class="small">@Html.Raw(item.Orden.comentario.Replace("Incluye:", "<strong>Incluye:</strong><ul><li>").Replace(" + ", "</li><li>") + "</li></ul>")</p>
                                     }
                                 </div>
                             </li>
@@ -200,7 +224,10 @@
             </div>
 
             <div class="form-group mb-3">
-                <label class="text-white">Total:</label>
+                <label class="text-white">
+                    Total:
+                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="Suma total de la orden. No editable."></i>
+                </label>
                 <input type="text" id="total" name="total" class="form-control"
                        value="@(tieneOrden ? ViewBag.TotalOrdenes.ToString("F2") : "0.00")" readonly />
             </div>
@@ -215,7 +242,7 @@
 
 <!-- Modal para productos normales -->
 <div class="modal fade" id="productosModal" tabindex="-1" aria-labelledby="productosModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="productosModalLabel">Seleccionar Productos</h5>
@@ -257,14 +284,26 @@
 </div>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
     <script>
         let total = @(tieneOrden ? ViewBag.TotalOrdenes : 0);
         let productosSeleccionados = [];
         let puedeEliminarNuevos = true;
         let productoParaLlevarSeleccionado = null;
 
+        $(document).ready(function () {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+
         function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            return text.replace(/&/g, "&amp;")
+                       .replace(/</g, "&lt;")
+                       .replace(/>/g, "&gt;")
+                       .replace(/"/g, "&quot;")
+                       .replace(/'/g, "&#039;");
         }
 
         function cargarPlatos() { $.get("/MesasMesero/GetPlatos", data => mostrarProductosEnModal(data, "platos")); }
@@ -276,34 +315,24 @@
             cargarProductosParaLlevar('platos');
         }
 
-        $('#tipoProductoLlevar').change(function() {
+        $('#tipoProductoLlevar').change(function () {
             const tipo = $(this).val();
             cargarProductosParaLlevar(tipo);
         });
 
         function cargarProductosParaLlevar(tipo) {
             let url = '';
-            switch(tipo) {
-                case 'platos': url = '/MesasMesero/GetPlatos'; break;
-                case 'promociones': url = '/MesasMesero/GetPromociones'; break;
-                case 'combos': url = '/MesasMesero/GetCombos'; break;
-            }
+            if (tipo === 'platos') url = '/MesasMesero/GetPlatos';
+            else if (tipo === 'promociones') url = '/MesasMesero/GetPromociones';
+            else if (tipo === 'combos') url = '/MesasMesero/GetCombos';
 
-            $.get(url, function(data) {
-                let html = '<div class="mb-3">';
-                html += '<label class="form-label">Seleccione un producto:</label>';
-                html += '<select class="form-select" id="productoLlevar">';
-
+            $.get(url, function (data) {
+                let html = '<div class="mb-3"><label class="form-label">Seleccione un producto:</label><select class="form-select" id="productoLlevar">';
                 data.forEach(p => {
                     let id = p.id_plato || p.id_promocion || p.id_combo;
-                    let nombre = p.nombre;
-                    let precio = p.precio;
-                    html += `<option value="${id}" data-nombre="${nombre}" data-precio="${precio}">${nombre} - $${precio.toFixed(2)}</option>`;
+                    html += `<option value="${id}" data-nombre="${p.nombre}" data-precio="${p.precio}">${p.nombre} - $${p.precio.toFixed(2)}</option>`;
                 });
-
-                html += '</select>';
-                html += '</div>';
-
+                html += '</select></div>';
                 $('#contenidoParaLlevar').html(html);
             });
         }
@@ -340,8 +369,10 @@
                             <div class="card-body">
                                 <h5>${p.nombre}</h5>
                                 <h6 class="text-muted">$${p.precio.toFixed(2)}</h6>
-                                <p class="text-truncate">${p.descripcion || 'Sin descripción'}</p>
-                                <button class="btn btn-primary w-100" onclick="agregarProducto(${id}, '${tipo}', '${escapeHtml(p.nombre)}', ${p.precio})">Agregar</button>
+                                <p>${formatearDescripcion(p.descripcion)}</p>
+                                <button class="btn btn-primary w-100" onclick="agregarProducto(${id}, '${tipo}', '${escapeHtml(p.nombre)}', ${p.precio})">
+                                    <i class="bi bi-plus-circle"></i> Agregar
+                                </button>
                             </div>
                         </div>
                     </div>`;
@@ -349,6 +380,15 @@
             html += "</div>";
             $("#modalContent").html(html);
             new bootstrap.Modal(document.getElementById('productosModal')).show();
+        }
+
+        function formatearDescripcion(texto) {
+            if (!texto) return 'Sin descripción';
+            if (texto.includes("Incluye:")) {
+                const partes = texto.replace("Incluye:", "").split(" + ");
+                return `<strong>Incluye:</strong><ul>${partes.map(p => `<li>${p.trim()}</li>`).join('')}</ul>`;
+            }
+            return texto;
         }
 
         function agregarProducto(id, tipo, nombre, precio) {
@@ -371,7 +411,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div>
                                 <strong>${nombre}</strong> - $${precio.toFixed(2)}
-                                <span class="badge bg-secondary ms-2">${tipo}</span>
+                                <i class="bi bi-info-circle ms-2" data-bs-toggle="tooltip" title="Producto ${tipo}"></i>
                                 <span class="badge bg-primary ms-2">En Proceso</span>
                                 ${esParaLlevar ? '<span class="badge badge-para-llevar ms-2">Para llevar</span>' : ''}
                             </div>
@@ -381,7 +421,9 @@
                             </button>
                         </div>
                         <div class="form-group mt-2">
-                            <label class="small text-muted">Comentarios:</label>
+                            <label class="small text-muted">
+                                <i class="bi bi-chat-left-text"></i> Comentarios:
+                            </label>
                             <textarea class="form-control form-control-sm comentario-input" rows="2"
                                       onchange="actualizarComentario('${itemId}', this.value)"
                                       placeholder="Ej: Sin picante, bien cocido, etc."></textarea>
@@ -391,7 +433,8 @@
             $("#listaSeleccionados").append(html);
             total += precio;
             $("#total").val(total.toFixed(2));
-            bootstrap.Modal.getInstance(document.getElementById('productosModal')).hide();
+            $('[data-bs-toggle="tooltip"]').tooltip();
+            bootstrap.Modal.getInstance(document.getElementById('productosModal'))?.hide();
         }
 
         function actualizarComentario(itemId, comentario) {

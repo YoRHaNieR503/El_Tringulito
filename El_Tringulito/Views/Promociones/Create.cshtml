@@ -1,0 +1,83 @@
+﻿@model El_Tringulito.Models.Promociones
+
+@{
+    ViewData["Title"] = "Crear Promoción";
+}
+
+<h1>Crear Promoción</h1>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" id="formPromocion">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label for="id_plato">Plato (opcional)</label>
+                @Html.DropDownListFor(model => model.id_plato, ViewBag.Platos as SelectList, "-- Seleccionar plato --", new { @class = "form-control", @id = "id_plato" })
+            </div>
+
+            <div class="form-group">
+                <label for="id_combo">Combo (opcional)</label>
+                @Html.DropDownListFor(model => model.id_combo, ViewBag.Combos as SelectList, "-- Seleccionar combo --", new { @class = "form-control", @id = "id_combo" })
+            </div>
+
+            <div class="form-group">
+                <label asp-for="fecha_inicio"></label>
+                <input asp-for="fecha_inicio" class="form-control" type="date" />
+                <span asp-validation-for="fecha_inicio" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="fecha_fin"></label>
+                <input asp-for="fecha_fin" class="form-control" type="date" />
+                <span asp-validation-for="fecha_fin" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="porcentaje_descuento">Descuento (%)</label>
+                <input type="number" id="porcentaje_descuento" class="form-control" min="0" max="100" value="0" />
+            </div>
+
+            <div class="form-group">
+                <label asp-for="precio">Precio Final ($)</label>
+                <input asp-for="precio" id="precio" class="form-control" readonly />
+                <span asp-validation-for="precio" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-3">
+                <input type="submit" value="Crear Promoción" class="btn btn-success" />
+                <a asp-action="Index" class="btn btn-secondary ms-2">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const preciosPlatos = @Html.Raw(Json.Serialize(ViewBag.PreciosPlatos));
+        const preciosCombos = @Html.Raw(Json.Serialize(ViewBag.PreciosCombos));
+
+        function actualizarPrecioFinal() {
+            const platoId = document.getElementById("id_plato").value;
+            const comboId = document.getElementById("id_combo").value;
+            const descuento = parseFloat(document.getElementById("porcentaje_descuento").value || 0);
+
+            const precioPlato = preciosPlatos[platoId] || 0;
+            const precioCombo = preciosCombos[comboId] || 0;
+            const total = precioPlato + precioCombo;
+            const precioFinal = total - (total * (descuento / 100));
+
+            document.getElementById("precio").value = precioFinal.toFixed(2);
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("id_plato").addEventListener("change", actualizarPrecioFinal);
+            document.getElementById("id_combo").addEventListener("change", actualizarPrecioFinal);
+            document.getElementById("porcentaje_descuento").addEventListener("input", actualizarPrecioFinal);
+        });
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

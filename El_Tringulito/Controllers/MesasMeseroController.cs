@@ -55,10 +55,8 @@ namespace El_Tringulito.Controllers
             if (validacion != null) return validacion;
 
             var mesa = _context.mesas.FirstOrDefault(m => m.id_mesa == id);
-            if (mesa == null || mesa.estado != "Libre")
-            {
-                return NotFound();
-            }
+            if (mesa == null || mesa.estado != "Libre") return NotFound();
+
             return View(mesa);
         }
 
@@ -182,152 +180,6 @@ namespace El_Tringulito.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> ActualizarOrden(int id_mesa, string nombre_cliente, decimal total, List<ProductoSeleccionado> productos)
-        {
-            if (!ModelState.IsValid) return BadRequest();
-
-            var enProceso = _context.ordenes.Any(o => o.id_mesa == id_mesa && o.estado == "En Proceso");
-
-            if (enProceso)
-            {
-                if (productos != null && productos.Any())
-                {
-                    foreach (var producto in productos)
-                    {
-                        var precio = await ObtenerPrecioProducto(producto);
-                        var orden = new Ordenes
-                        {
-                            id_mesa = id_mesa,
-                            nombre_cliente = nombre_cliente,
-                            comentario = producto.comentario,
-                            fecha = DateTime.Now,
-                            estado = "Pendiente",
-                            total = precio,
-                            para_llevar = producto.paraLlevar // Asegurar que se guarde el flag para llevar
-                        };
-
-                        if (producto.tipo == "platos") orden.id_plato = producto.id;
-                        else if (producto.tipo == "promociones") orden.id_promocion = producto.id;
-                        else if (producto.tipo == "combos") orden.id_combo = producto.id;
-
-                        _context.ordenes.Add(orden);
-                    }
-                    await _context.SaveChangesAsync();
-                    await _hubContext.Clients.All.SendAsync("NuevaOrdenAgregada", id_mesa);
-                }
-            }
-            else
-            {
-                var anteriores = _context.ordenes
-                    .Where(o => o.id_mesa == id_mesa && o.estado == "Pendiente").ToList();
-
-                _context.ordenes.RemoveRange(anteriores);
-                await _context.SaveChangesAsync();
-
-                if (productos != null && productos.Any())   
-                {
-                    foreach (var producto in productos)
-                    {
-                        var precio = await ObtenerPrecioProducto(producto);
-                        var orden = new Ordenes
-                        {
-                            id_mesa = id_mesa,
-                            nombre_cliente = nombre_cliente,
-                            comentario = producto.comentario,
-                            fecha = DateTime.Now,
-                            estado = "Pendiente",
-                            total = precio,
-                            para_llevar = producto.paraLlevar // Asegurar que se guarde el flag para llevar
-                        };
-
-                        if (producto.tipo == "platos") orden.id_plato = producto.id;
-                        else if (producto.tipo == "promociones") orden.id_promocion = producto.id;
-                        else if (producto.tipo == "combos") orden.id_combo = producto.id;
-
-                        _context.ordenes.Add(orden);
-                    }
-                    await _context.SaveChangesAsync();
-                    await _hubContext.Clients.All.SendAsync("NuevaOrdenCreada", id_mesa);
-                }
-            }
-
-            var mesaUpd = _context.mesas.FirstOrDefault(m => m.id_mesa == id_mesa);
-            if (mesaUpd != null)
-            {
-                mesaUpd.estado = "Ocupada";
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction("VerOrden", new { id = id_mesa });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> FinalizarOrden(int id_mesa)
-        {
-            var mesa = await _context.mesas.FindAsync(id_mesa);
-            if (mesa == null) return NotFound();
-
-            var ordenes = await _context.ordenes
-                .Where(o => o.id_mesa == id_mesa && o.estado != "Finalizada").ToListAsync();
-
-            foreach (var orden in ordenes)
-            {
-                orden.estado = "Finalizada";
-            }
-
-            mesa.estado = "Libre";
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = $"Orden de la mesa {id_mesa} finalizada y mesa liberada";
-            return RedirectToAction("Index");
-        }
-
-        public IActionResult ParaLlevar()
-        {
-            var validacion = ValidarAccesoMesero();
-            if (validacion != null) return validacion;
-
-            return View();
-        }
-
-
-
-        [HttpPost]
-        public async Task<IActionResult> AgregarProductoLlevar(int idMesa, int idProducto, string tipoProducto, string comentario)
-        {
-            var validacion = ValidarAccesoMesero();
-            if (validacion != null) return validacion;
-
-            // Obtener el precio del producto
-            var precio = await ObtenerPrecioProducto(new ProductoSeleccionado { id = idProducto, tipo = tipoProducto });
-
-            // Crear la orden para llevar asociada a la mesa
-            var orden = new Ordenes
-            {
-                id_mesa = idMesa,
-                nombre_cliente = _context.ordenes.FirstOrDefault(o => o.id_mesa == idMesa)?.nombre_cliente ?? "",
-                comentario = comentario,
-                fecha = DateTime.Now,
-                estado = "Pendiente",
-                total = precio,
-                para_llevar = true
-            };
-
-            if (tipoProducto == "platos") orden.id_plato = idProducto;
-            else if (tipoProducto == "promociones") orden.id_promocion = idProducto;
-            else if (tipoProducto == "combos") orden.id_combo = idProducto;
-
-            _context.ordenes.Add(orden);
-            await _context.SaveChangesAsync();
-
-            await _hubContext.Clients.All.SendAsync("NuevaOrdenAgregada", idMesa);
-
-            return RedirectToAction("VerOrden", new { id = idMesa });
-        }
-
-
-
-        [HttpPost]
         public async Task<IActionResult> CrearOrdenParaLlevar(string nombre_cliente, decimal total, List<ProductoSeleccionado> productos)
         {
             if (productos == null || !productos.Any())
@@ -376,16 +228,23 @@ namespace El_Tringulito.Controllers
                 .Where(p => p.fecha_inicio <= DateTime.Now && p.fecha_fin >= DateTime.Now)
                 .ToListAsync();
 
-            var promos = promociones.Select(p => new
+            var promos = promociones.Select(p =>
             {
-                p.id_promocion,
-                p.precio,
-                nombre = GetNombrePromocion(p.id_promocion),
-                descripcion = "Promoción disponible"
+                string nombre = GetNombrePromocionTitulo(p);
+                string descripcion = GetDescripcionPromocion(p);
+
+                return new
+                {
+                    p.id_promocion,
+                    p.precio,
+                    nombre,
+                    descripcion
+                };
             }).ToList();
 
             return Json(promos);
         }
+
 
         public async Task<IActionResult> GetCombos()
         {
@@ -417,6 +276,43 @@ namespace El_Tringulito.Controllers
 
             return "Promoción sin producto asociado";
         }
+        private string GetNombrePromocionTitulo(Promociones promo)
+        {
+            bool tienePlato = promo.id_plato.HasValue;
+            bool tieneCombo = promo.id_combo.HasValue;
+
+            if (tienePlato && tieneCombo)
+                return "Promoción: Plato + Combo";
+            else if (tienePlato)
+                return "Promoción: Plato";
+            else if (tieneCombo)
+                return "Promoción: Combo";
+
+            return "Promoción";
+        }
+
+
+        private string GetDescripcionPromocion(Promociones promo)
+        {
+            List<string> partes = new List<string>();
+
+            if (promo.id_plato.HasValue)
+            {
+                var plato = _context.platos.FirstOrDefault(p => p.id_plato == promo.id_plato);
+                if (plato != null)
+                    partes.Add($"<li><strong>Plato:</strong> {plato.nombre}</li>");
+            }
+
+            if (promo.id_combo.HasValue)
+            {
+                var combo = _context.combos.FirstOrDefault(c => c.id_combo == promo.id_combo);
+                if (combo != null)
+                    partes.Add($"<li><strong>Combo:</strong> {combo.nombre}</li>");
+            }
+
+            return partes.Any() ? $"<ul class='mb-0 ps-3'>{string.Join("", partes)}</ul>" : "Promoción sin detalles.";
+        }
+
 
         public class ProductoSeleccionado
         {
@@ -424,7 +320,7 @@ namespace El_Tringulito.Controllers
             public string tipo { get; set; }
             public string? comentario { get; set; }
             public decimal precio { get; set; }
-            public bool paraLlevar { get; set; } // Nueva propiedad
+            public bool paraLlevar { get; set; }
         }
     }
 }

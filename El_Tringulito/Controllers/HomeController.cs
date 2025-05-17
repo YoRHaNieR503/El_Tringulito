@@ -1,3 +1,4 @@
+// HomeController.cs actualizado
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using El_Tringulito.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Collections.Generic;
 
 namespace El_Tringulito.Controllers
 {
@@ -26,15 +28,26 @@ namespace El_Tringulito.Controllers
                 ViewData["MesasCount"] = await _context.mesas.CountAsync();
                 ViewData["OrdenesCount"] = await _context.ordenes.CountAsync();
                 ViewData["PlatosCount"] = await _context.platos.CountAsync();
+                ViewData["PromocionesCount"] = await _context.promociones.CountAsync();
+                ViewData["TotalVentas"] = await _context.ordenes.SumAsync(o => o.total ?? 0);
+                ViewData["MesasDisponibles"] = await _context.mesas.CountAsync(m => m.estado == "Libre");
+                ViewData["MesasOcupadas"] = await _context.mesas.CountAsync(m => m.estado == "Ocupada");
 
-                ViewData["OrdenesRecientes"] = await _context.ordenes
-                    .OrderByDescending(o => o.fecha)
+                var ordenesAgrupadas = await _context.ordenes
+                    .Where(o => o.codigo_orden != null)
+                    .GroupBy(o => o.codigo_orden)
+                    .Select(g => new OrdenResumenViewModel
+                    {
+                        Codigo = g.Key,
+                        Cliente = g.First().nombre_cliente,
+                        Fecha = g.First().fecha,
+                        Total = g.Sum(x => x.total ?? 0)
+                    })
+                    .OrderByDescending(o => o.Fecha)
                     .Take(5)
                     .ToListAsync();
 
-                ViewData["TotalVentas"] = await _context.ordenes.SumAsync(o => o.total ?? 0);
-                ViewData["MesasDisponibles"] = await _context.mesas.CountAsync(m => m.estado == "Disponible");
-                ViewData["MesasOcupadas"] = await _context.mesas.CountAsync(m => m.estado == "Ocupada");
+                ViewData["OrdenesRecientes"] = ordenesAgrupadas;
 
                 return View();
             }
@@ -49,5 +62,13 @@ namespace El_Tringulito.Controllers
 
         [AllowAnonymous]
         public IActionResult Error() => View();
+    }
+
+    public class OrdenResumenViewModel
+    {
+        public Guid? Codigo { get; set; }
+        public string Cliente { get; set; }
+        public DateTime Fecha { get; set; }
+        public decimal Total { get; set; }
     }
 }

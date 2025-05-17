@@ -145,6 +145,8 @@ namespace El_Tringulito.Controllers
             if (!ModelState.IsValid || productos == null || !productos.Any())
                 return BadRequest("Datos inválidos o productos vacíos.");
 
+            Guid codigoOrden = Guid.NewGuid(); // Se genera siempre
+
             foreach (var producto in productos)
             {
                 var precio = await ObtenerPrecioProducto(producto);
@@ -155,8 +157,9 @@ namespace El_Tringulito.Controllers
                     comentario = producto.comentario,
                     fecha = DateTime.Now,
                     estado = "Pendiente",
+                    total = precio,
                     para_llevar = producto.paraLlevar,
-                    total = precio
+                    codigo_orden = codigoOrden
                 };
 
                 if (producto.tipo == "platos") orden.id_plato = producto.id;
@@ -178,6 +181,7 @@ namespace El_Tringulito.Controllers
             await _hubContext.Clients.All.SendAsync("NuevaOrdenCreada", id_mesa);
             return RedirectToAction("Index");
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CrearOrdenParaLlevar(string nombre_cliente, decimal total, List<ProductoSeleccionado> productos)
@@ -312,6 +316,99 @@ namespace El_Tringulito.Controllers
 
             return partes.Any() ? $"<ul class='mb-0 ps-3'>{string.Join("", partes)}</ul>" : "Promoción sin detalles.";
         }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> ActualizarOrden(int id_mesa, string nombre_cliente, decimal total, List<ProductoSeleccionado> productos)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+
+            bool esParaLlevar = id_mesa == 0;
+            Guid? codigoExistente = null;
+
+            if (esParaLlevar)
+            {
+                codigoExistente = _context.ordenes
+                    .Where(o => o.para_llevar && o.nombre_cliente == nombre_cliente && o.estado != "Finalizada")
+                    .OrderByDescending(o => o.fecha)
+                    .Select(o => o.codigo_orden)
+                    .FirstOrDefault();
+            }
+            else
+            {
+                codigoExistente = _context.ordenes
+                    .Where(o => o.id_mesa == id_mesa && o.estado != "Finalizada")
+                    .OrderByDescending(o => o.fecha)
+                    .Select(o => o.codigo_orden)
+                    .FirstOrDefault();
+            }
+
+            if (codigoExistente == null)
+            {
+                codigoExistente = Guid.NewGuid();
+            }
+
+            if (productos != null && productos.Any())
+            {
+                foreach (var producto in productos)
+                {
+                    var precio = await ObtenerPrecioProducto(producto);
+                    var nuevaOrden = new Ordenes
+                    {
+                        id_mesa = esParaLlevar ? null : id_mesa,
+                        nombre_cliente = nombre_cliente,
+                        comentario = producto.comentario,
+                        fecha = DateTime.Now,
+                        estado = "Pendiente",
+                        total = precio,
+                        para_llevar = esParaLlevar || producto.paraLlevar,
+                        codigo_orden = codigoExistente
+                    };
+
+                    if (producto.tipo == "platos") nuevaOrden.id_plato = producto.id;
+                    else if (producto.tipo == "promociones") nuevaOrden.id_promocion = producto.id;
+                    else if (producto.tipo == "combos") nuevaOrden.id_combo = producto.id;
+
+                    _context.ordenes.Add(nuevaOrden);
+                }
+
+                await _context.SaveChangesAsync();
+                await _hubContext.Clients.All.SendAsync("NuevaOrdenAgregada", id_mesa);
+            }
+
+            if (!esParaLlevar)
+            {
+                var mesa = _context.mesas.FirstOrDefault(m => m.id_mesa == id_mesa);
+                if (mesa != null)
+                {
+                    mesa.estado = "Ocupada";
+                    await _context.SaveChangesAsync();
+                }
+
+                return RedirectToAction("VerOrden", new { id = id_mesa });
+            }
+            else
+            {
+                return RedirectToAction("VerOrdenParaLlevar", new { id = codigoExistente });
+            }
+        }
+
+
+
+
+
+
+
+        public IActionResult ParaLlevar()
+        {
+            var validacion = ValidarAccesoMesero();
+            if (validacion != null) return validacion;
+
+            return View(); // Vista: Views/MesasMesero/ParaLlevar.cshtml
+        }
+
+
 
 
         public class ProductoSeleccionado

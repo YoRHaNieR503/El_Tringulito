@@ -1,5 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Dashboard";
+    var ordenesAgrupadas = ViewData["OrdenesRecientes"] as List<El_Tringulito.Controllers.OrdenResumenViewModel>;
 }
 
 <style>
@@ -43,8 +44,7 @@
         margin-bottom: 5px;
     }
 
-        .nav-link:hover,
-        .nav-link.active {
+        .nav-link:hover, .nav-link.active {
             background-color: #533f00;
             color: white;
         }
@@ -60,32 +60,6 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-2 bg-dark text-white min-vh-100 p-3">
-            <div class="text-center mb-4">
-                <div class="mb-3">
-                    <img src="~/images/login-background.png" alt="Logo" class="img-fluid rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
-                </div>
-
-                <h5 class="mb-1">@User.Identity.Name</h5>
-                <small class="text-muted">Administrador</small>
-
-                <form class="logout-form mt-3" asp-controller="Auth" asp-action="Logout" method="post" id="logoutForm">
-                    <button type="submit" class="btn btn-outline-light btn-sm btn-block">
-                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                    </button>
-                </form>
-            </div>
-
-            <hr class="bg-secondary">
-
-            <nav class="nav flex-column">
-                <a href="/Home" class="nav-link active"><i class="fas fa-tachometer-alt mr-2"></i> Dashboard</a>
-                <a href="/Mesas" class="nav-link"><i class="fas fa-chair mr-2"></i> Mesas</a>
-                <a href="/Platos" class="nav-link"><i class="fas fa-utensils mr-2"></i> Platos</a>
-                <a href="/Combos" class="nav-link"><i class="fas fa-boxes mr-2"></i> Combos</a>
-                <a href="/Ordenes" class="nav-link"><i class="fas fa-receipt mr-2"></i> Órdenes</a>
-            </nav>
-        </div>
 
         <div class="col-md-10 p-4">
             <h2><i class="fas fa-tachometer-alt text-white mr-2"></i> Dashboard</h2>
@@ -116,7 +90,7 @@
                     <div class="card">
                         <div class="card-header">Órdenes</div>
                         <div class="card-body text-center">
-                            <h3>@ViewData["OrdenesCount"]</h3>
+                            <h3>@(ordenesAgrupadas?.Count ?? 0)</h3>
                             <p class="mt-2"><small>Total: @(((decimal)ViewData["TotalVentas"]).ToString("C"))</small></p>
                             <a href="/Ordenes" class="btn btn-outline-light btn-sm">Ver más</a>
                         </div>
@@ -148,17 +122,19 @@
                                     <thead>
                                         <tr>
                                             <th>Cliente</th>
+                                            <th>Cliente</th>
                                             <th>Fecha</th>
                                             <th>Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var orden in (List<Ordenes>)ViewData["OrdenesRecientes"])
+                                        @foreach (var orden in ordenesAgrupadas)
                                         {
                                             <tr>
-                                                <td>@orden.nombre_cliente</td>
-                                                <td>@orden.fecha.ToString("dd/MM/yyyy HH:mm")</td>
-                                                <td>@orden.total?.ToString("C")</td>
+                                                <td>@orden.Cliente</td>
+                                                <td>@orden.Cliente</td>
+                                                <td>@orden.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                                <td>@orden.Total.ToString("C")</td>
                                             </tr>
                                         }
                                     </tbody>
@@ -180,26 +156,29 @@
         var dashboardChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Combos', 'Mesas', 'Órdenes', 'Platos'],
+                labels: ['Combos', 'Mesas', 'Órdenes', 'Platos', 'Promociones'],
                 datasets: [{
                     label: 'Cantidad',
                     data: [
         @ViewData["CombosCount"],
         @ViewData["MesasCount"],
-        @ViewData["OrdenesCount"],
-        @ViewData["PlatosCount"]
+        @(((List<El_Tringulito.Controllers.OrdenResumenViewModel>)ViewData["OrdenesRecientes"]).Count),
+        @ViewData["PlatosCount"],
+        @ViewData["PromocionesCount"]
                     ],
                     backgroundColor: [
                         'rgba(255, 152, 0, 0.7)',
                         'rgba(0, 188, 212, 0.7)',
                         'rgba(233, 30, 99, 0.7)',
-                        'rgba(255, 193, 7, 0.7)'
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(156, 39, 176, 0.7)'
                     ],
                     borderColor: [
                         'rgba(255, 152, 0, 1)',
                         'rgba(0, 188, 212, 1)',
                         'rgba(233, 30, 99, 1)',
-                        'rgba(255, 193, 7, 1)'
+                        'rgba(255, 193, 7, 1)',
+                        'rgba(156, 39, 176, 1)'
                     ],
                     borderWidth: 1,
                     borderRadius: 10
@@ -232,5 +211,4 @@
             }
         });
     </script>
-
 }

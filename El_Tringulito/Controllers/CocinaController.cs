@@ -43,13 +43,9 @@ namespace El_Tringulito.Controllers
 
             var viewModel = new List<OrdenCocinaViewModel>();
 
-            // Procesar órdenes de mesas
             await ProcesarOrdenesMesas(viewModel);
-
-            // Procesar órdenes para llevar
             await ProcesarOrdenesParaLlevar(viewModel);
 
-            // Ordenar resultados
             var resultado = viewModel
                 .OrderBy(v => v.EstadoGeneral == "Pendiente" ? 0 :
                               v.EstadoGeneral == "En Proceso" ? 1 : 2)
@@ -102,7 +98,8 @@ namespace El_Tringulito.Controllers
                         EsParaLlevar = ordenes.Any(o => o.ParaLlevar),
                         TieneParaLlevar = tieneParaLlevar,
                         TieneParaConsumirEnSitio = tieneParaConsumir,
-                        InfoMesa = ordenes.First().MesaNombre
+                        InfoMesa = ordenes.First().MesaNombre,
+                        CodigoOrden = ordenesBase.FirstOrDefault(o => o.codigo_orden != null)?.codigo_orden
                     });
                 }
             }
@@ -113,12 +110,15 @@ namespace El_Tringulito.Controllers
             var ordenesParaLlevar = await _context.ordenes
                 .Where(o => o.para_llevar &&
                            (o.estado == "Pendiente" || o.estado == "En Proceso" || o.estado == "Entregada") &&
-                           o.codigo_orden != null) // Asegurar que codigo_orden no sea nulo
+                           o.codigo_orden != null)
                 .GroupBy(o => o.codigo_orden)
                 .ToListAsync();
 
             foreach (var grupo in ordenesParaLlevar)
             {
+                // Si ya está incluida en una orden con mesa, omitir
+                if (viewModel.Any(vm => vm.CodigoOrden == grupo.Key)) continue;
+
                 var ordenes = new List<OrdenItemViewModel>();
                 foreach (var orden in grupo)
                 {
@@ -142,7 +142,8 @@ namespace El_Tringulito.Controllers
                         EsParaLlevar = true,
                         TieneParaLlevar = true,
                         TieneParaConsumirEnSitio = false,
-                        InfoMesa = mesaInfo
+                        InfoMesa = mesaInfo,
+                        CodigoOrden = grupo.Key
                     });
                 }
             }
@@ -274,6 +275,7 @@ namespace El_Tringulito.Controllers
         public string InfoMesa { get; set; }
         public bool TieneParaLlevar { get; set; }
         public bool TieneParaConsumirEnSitio { get; set; }
+        public Guid? CodigoOrden { get; set; } // agregado para identificar duplicados
     }
 
     public class OrdenItemViewModel

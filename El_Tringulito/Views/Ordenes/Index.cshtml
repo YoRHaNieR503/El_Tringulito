@@ -2,6 +2,12 @@
 
 @{
     ViewData["Title"] = "Órdenes";
+
+    var ordenesParaLlevar = ((List<El_Tringulito.Models.Ordenes>)ViewBag.OrdenesParaLlevar ?? new List<El_Tringulito.Models.Ordenes>())
+        .GroupBy(o => o.codigo_orden).ToList();
+
+    var ordenesEnLugar = ((List<El_Tringulito.Models.Ordenes>)ViewBag.OrdenesEnLugar ?? new List<El_Tringulito.Models.Ordenes>())
+        .GroupBy(o => o.codigo_orden).ToList();
 }
 
 <style>
@@ -45,7 +51,7 @@
         }
 
     .table-hover tbody tr:hover {
-        background-color: rgba(255, 193, 7, 0.4);
+        background-color: rgba(255, 193, 7, 0.3);
     }
 
     .btn {
@@ -56,15 +62,21 @@
             transform: translateY(-2px);
         }
 
-    .text-end {
-        text-align: right;
+    .badge-warning {
+        background-color: #ffc107;
+        color: #000;
     }
 
-    .section-title {
-        color: #FFC107;
-        margin-bottom: 20px;
-        border-bottom: 2px solid #FFC107;
-        padding-bottom: 5px;
+    .badge-success {
+        background-color: #28a745;
+    }
+
+    .badge-primary {
+        background-color: #007bff;
+    }
+
+    .text-end {
+        text-align: right;
     }
 
     .btn-group-actions {
@@ -77,8 +89,8 @@
     <div class="d-flex justify-content-between mb-4">
         <h1><i class="bi bi-clipboard-data me-2"></i>Órdenes</h1>
         <div>
-            <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Orden en Mesa</a>
-            <a asp-action="CreateParaLlevar" class="btn btn-success"><i class="bi bi-bag-plus"></i> Orden para Llevar</a>
+            <a asp-controller="MesasMesero" asp-action="Index" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Orden en Mesa</a>
+            <a asp-controller="MesasMesero" asp-action="ParaLlevar" class="btn btn-success"><i class="bi bi-bag-plus"></i> Orden para Llevar</a>
         </div>
     </div>
 
@@ -88,53 +100,39 @@
             <h3 class="mb-0"><i class="bi bi-bag-check me-2"></i>Órdenes para Llevar</h3>
         </div>
         <div class="card-body">
-            @if (ViewBag.OrdenesParaLlevar != null && ViewBag.OrdenesParaLlevar.Count > 0)
+            @if (ordenesParaLlevar.Any())
             {
                 <table class="table table-dark table-hover">
                     <thead>
                         <tr>
                             <th>Cliente</th>
-                            <th>Plato/Promoción</th>
+                            <th>Productos</th>
                             <th>Fecha</th>
                             <th>Estado</th>
-                            <th>Comentario</th>
                             <th>Total</th>
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in ViewBag.OrdenesParaLlevar)
+                        @foreach (var grupo in ordenesParaLlevar)
                         {
+                            var primera = grupo.First();
                             <tr>
-                                <td>@item.nombre_cliente</td>
+                                <td>@primera.nombre_cliente</td>
+                                <td>@grupo.Count() producto(s) ordenado(s)</td>
+                                <td>@primera.fecha.ToShortDateString()</td>
                                 <td>
-                                    @if (item.id_plato != null)
-                                    {
-                                        <span>Plato: @item.id_plato</span>
-                                    }
-                                    else if (item.id_promocion != null)
-                                    {
-                                        <span>Promoción: @item.id_promocion</span>
-                                    }
-                                    else if (item.id_combo != null)
-                                    {
-                                        <span>Combo: @item.id_combo</span>
-                                    }
-                                </td>
-                                <td>@item.fecha.ToShortDateString()</td>
-                                <td>
-                                    <span class="badge @(item.estado == "Pendiente" ? "bg-warning text-dark" : "bg-success")">
-                                        @item.estado
+                                    <span class="badge @(primera.estado == "Pendiente" ? "badge-warning" :
+                                                         primera.estado == "Entregada" ? "badge-success" : "badge-primary")">
+                                        @primera.estado
                                     </span>
                                 </td>
-                                <td>@(string.IsNullOrEmpty(item.comentario) ? "Ninguno" : item.comentario)</td>
-                                <td>$@item.total?.ToString("F2")</td>
+                                <td>$@(grupo.Sum(o => o.total ?? 0).ToString("F2"))</td>
                                 <td class="text-end">
-                                    <div class="btn-group-actions">
-                                        <a asp-action="Edit" asp-route-id="@item.id_orden" class="btn btn-sm btn-warning"><i class="bi bi-pencil-square"></i></a>
-                                        <a asp-action="Details" asp-route-id="@item.id_orden" class="btn btn-sm btn-info text-white"><i class="bi bi-eye"></i></a>
-                                        <a asp-action="Delete" asp-route-id="@item.id_orden" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
-                                    </div>
+                                    <a asp-controller="Ordenes" asp-action="VerFactura" asp-route-id="@grupo.Key" class="btn btn-info btn-sm text-white">
+                                        <i class="bi bi-receipt"></i> Ver Orden
+                                    </a>
+
                                 </td>
                             </tr>
                         }
@@ -156,55 +154,41 @@
             <h3 class="mb-0"><i class="bi bi-egg-fried me-2"></i>Órdenes en el Local</h3>
         </div>
         <div class="card-body">
-            @if (ViewBag.OrdenesEnLugar != null && ViewBag.OrdenesEnLugar.Count > 0)
+            @if (ordenesEnLugar.Any())
             {
                 <table class="table table-dark table-hover">
                     <thead>
                         <tr>
                             <th>Mesa</th>
                             <th>Cliente</th>
-                            <th>Plato/Promoción</th>
+                            <th>Productos</th>
                             <th>Fecha</th>
                             <th>Estado</th>
-                            <th>Comentario</th>
                             <th>Total</th>
                             <th class="text-end">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in ViewBag.OrdenesEnLugar)
+                        @foreach (var grupo in ordenesEnLugar)
                         {
+                            var primera = grupo.First();
                             <tr>
-                                <td>@item.id_mesa</td>
-                                <td>@item.nombre_cliente</td>
+                                <td>@(Convert.ToInt32(primera.id_mesa ?? 0))</td>
+                                <td>@primera.nombre_cliente</td>
+                                <td>@grupo.Count() producto(s) ordenado(s)</td>
+                                <td>@primera.fecha.ToShortDateString()</td>
                                 <td>
-                                    @if (item.id_plato != null)
-                                    {
-                                        <span>Plato: @item.id_plato</span>
-                                    }
-                                    else if (item.id_promocion != null)
-                                    {
-                                        <span>Promoción: @item.id_promocion</span>
-                                    }
-                                    else if (item.id_combo != null)
-                                    {
-                                        <span>Combo: @item.id_combo</span>
-                                    }
-                                </td>
-                                <td>@item.fecha.ToShortDateString()</td>
-                                <td>
-                                    <span class="badge @(item.estado == "Pendiente" ? "bg-warning text-dark" : "bg-success")">
-                                        @item.estado
+                                    <span class="badge @(primera.estado == "Pendiente" ? "badge-warning" :
+                                                         primera.estado == "Entregada" ? "badge-success" : "badge-primary")">
+                                        @primera.estado
                                     </span>
                                 </td>
-                                <td>@(string.IsNullOrEmpty(item.comentario) ? "Ninguno" : item.comentario)</td>
-                                <td>$@item.total?.ToString("F2")</td>
+                                <td>$@(grupo.Sum(o => o.total ?? 0).ToString("F2"))</td>
                                 <td class="text-end">
-                                    <div class="btn-group-actions">
-                                        <a asp-action="Edit" asp-route-id="@item.id_orden" class="btn btn-sm btn-warning"><i class="bi bi-pencil-square"></i></a>
-                                        <a asp-action="Details" asp-route-id="@item.id_orden" class="btn btn-sm btn-info text-white"><i class="bi bi-eye"></i></a>
-                                        <a asp-action="Delete" asp-route-id="@item.id_orden" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
-                                    </div>
+                                    <a asp-controller="Ordenes" asp-action="VerFactura" asp-route-id="@grupo.Key" class="btn btn-info btn-sm text-white">
+                                        <i class="bi bi-receipt"></i> Ver Orden
+                                    </a>
+
                                 </td>
                             </tr>
                         }

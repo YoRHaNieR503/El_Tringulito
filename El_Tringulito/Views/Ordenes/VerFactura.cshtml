@@ -1,0 +1,250 @@
+﻿@model El_Tringulito.Controllers.FacturaViewModel
+
+@{
+    ViewData["Title"] = "Detalle de Orden";
+    var tipoOrden = Model.EsParaLlevar ? "Para Llevar" : "En Local";
+}
+
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .factura-container {
+        max-width: 800px;
+        margin: 30px auto;
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e0e0e0;
+    }
+
+    .factura-header {
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #FFC107;
+        padding-bottom: 20px;
+    }
+
+        .factura-header h1 {
+            margin: 0;
+            color: #2d1b00;
+            font-weight: bold;
+        }
+
+    .factura-subheader {
+        color: #a66f00;
+        font-style: italic;
+        margin-top: 5px;
+    }
+
+    .factura-datos {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        background-color: #fff9e6;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #FFC107;
+    }
+
+        .factura-datos div {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+
+    .factura-codigo {
+        text-align: center;
+        margin-bottom: 20px;
+        font-family: monospace;
+        color: #6c757d;
+        background-color: #f8f9fa;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px dashed #dee2e6;
+    }
+
+    .tabla-productos {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+    }
+
+        .tabla-productos th {
+            background-color: #2d1b00;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .tabla-productos td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tabla-productos tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .tabla-productos tbody tr:hover {
+            background-color: #fff5e6;
+        }
+
+    .promocion-item {
+        font-weight: bold;
+        color: #a66f00;
+    }
+
+    .total-section {
+        text-align: right;
+        font-size: 20px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #FFC107;
+        font-weight: bold;
+        color: #2d1b00;
+    }
+
+    .badge-tipo {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .badge-plato {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .badge-combo {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .badge-promocion {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .btn-print {
+        background-color: #2d1b00;
+        color: white;
+        font-weight: bold;
+        margin-top: 20px;
+        border: none;
+        padding: 10px 20px;
+    }
+
+        .btn-print:hover {
+            background-color: #a66f00;
+            color: white;
+        }
+
+    .btn-back {
+        background-color: #6c757d;
+        color: white;
+        margin-top: 20px;
+        margin-right: 10px;
+    }
+
+    .comentario-item {
+        font-style: italic;
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .encabezado-orden {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="factura-container">
+    <div class="factura-header">
+        <h1>Panes con gallina El Triangulito</h1>
+        <p class="factura-subheader">Restaurante</p>
+    </div>
+
+    <div class="encabezado-orden">
+        <div class="factura-codigo">
+            <strong>N° Orden:</strong> @Model.CodigoOrden
+        </div>
+
+        <div class="factura-datos">
+            <div><strong>Tipo:</strong> @tipoOrden</div>
+            <div><strong>Cliente:</strong> @Model.Cliente</div>
+            <div><strong>Fecha:</strong> @Model.Fecha</div>
+            @if (!Model.EsParaLlevar)
+            {
+                <div><strong>Mesa:</strong> @Model.NumeroMesa</div>
+            }
+        </div>
+    </div>
+
+    <table class="tabla-productos">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Tipo</th>
+                <th>Comentario</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr class="@(item.Tipo == "Promoción" ? "promocion-item" : "")">
+                    <td>@item.Nombre</td>
+                    <td>
+                        <span class="badge-tipo
+                              @(item.Tipo == "Plato" ? "badge-plato" :
+                                item.Tipo == "Combo" ? "badge-combo" : "badge-promocion")">
+                            @item.Tipo
+                        </span>
+                    </td>
+                    <td class="comentario-item">@item.Comentario</td>
+                    <td>@item.Cantidad</td>
+                    <td>$@item.Precio.ToString("F2")</td>
+                    <td>$@item.Total.ToString("F2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        TOTAL: $@Model.Total.ToString("F2")
+    </div>
+
+    <div class="text-center">
+        <a href="@Url.Action("Index")" class="btn btn-back">
+            <i class="bi bi-arrow-left"></i> Volver a Órdenes
+        </a>
+        <!--  
+
+        <button onclick="window.print()" class="btn btn-print">
+            <i class="bi bi-printer"></i> Imprimir Factura
+        </button>
+
+        -->
+        
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelector('.btn-print').addEventListener('click', function () {
+            this.disabled = true;
+            setTimeout(() => {
+                this.disabled = false;
+            }, 2000);
+        });
+    </script>
+}

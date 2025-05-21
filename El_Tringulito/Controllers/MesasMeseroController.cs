@@ -134,6 +134,8 @@ namespace El_Tringulito.Controllers
             ViewBag.EstadoGeneral = estadoGeneral;
             ViewBag.PuedeFinalizar = puedeFinalizar;
             ViewBag.EsParaLlevar = true;
+            ViewBag.CodigoOrden = id;
+
 
             var ordenFake = new Mesas { id_mesa = 0, nombre = "Para Llevar" };
             return View("VerOrden", ordenFake);
@@ -393,6 +395,138 @@ namespace El_Tringulito.Controllers
                 return RedirectToAction("VerOrdenParaLlevar", new { id = codigoExistente });
             }
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> CancelarOrden(int id_mesa)
+        {
+            var ordenes = _context.ordenes
+                .Where(o => o.id_mesa == id_mesa && o.estado == "Pendiente")
+                .ToList();
+
+            if (!ordenes.Any())
+            {
+                TempData["ErrorMessage"] = "No se puede cancelar la orden. No hay productos en estado 'Pendiente'.";
+                return RedirectToAction("VerOrden", new { id = id_mesa });
+            }
+
+            _context.ordenes.RemoveRange(ordenes);
+            await _context.SaveChangesAsync();
+
+            var mesa = await _context.mesas.FindAsync(id_mesa);
+            if (mesa != null)
+            {
+                mesa.estado = "Libre";
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["SuccessMessage"] = "Orden cancelada exitosamente.";
+            return RedirectToAction("VerOrden", new { id = id_mesa });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CancelarOrdenParaLlevar(Guid id)
+        {
+            var ordenes = _context.ordenes
+                .Where(o => o.codigo_orden == id && o.estado == "Pendiente" && o.para_llevar)
+                .ToList();
+
+            if (!ordenes.Any())
+            {
+                TempData["ErrorMessage"] = "No se puede cancelar la orden. No hay productos pendientes o ya está en proceso.";
+                return RedirectToAction("VerOrdenParaLlevar", new { id = id });
+            }
+
+            _context.ordenes.RemoveRange(ordenes);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Orden para llevar cancelada exitosamente.";
+            return RedirectToAction("Index");
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> FinalizarOrden(int id_mesa)
+        {
+            var mesa = await _context.mesas.FirstOrDefaultAsync(m => m.id_mesa == id_mesa);
+            if (mesa == null)
+            {
+                TempData["ErrorMessage"] = "Mesa no encontrada.";
+                return RedirectToAction("Index");
+            }
+
+            // Obtener todas las órdenes no finalizadas de esa mesa
+            var ordenes = await _context.ordenes
+                .Where(o => o.id_mesa == id_mesa && o.estado != "Finalizada")
+                .ToListAsync();
+
+            if (!ordenes.Any())
+            {
+                TempData["ErrorMessage"] = "No hay órdenes activas para finalizar.";
+                return RedirectToAction("VerOrden", new { id = id_mesa });
+            }
+
+            // Validar que todas estén en estado "Entregada"
+            if (ordenes.Any(o => o.estado != "Entregada"))
+            {
+                TempData["ErrorMessage"] = "Solo se puede finalizar la orden si todos los productos han sido entregados.";
+                return RedirectToAction("VerOrden", new { id = id_mesa });
+            }
+
+            // Cambiar estado a "Finalizada"
+            foreach (var orden in ordenes)
+            {
+                orden.estado = "Finalizada";
+            }
+
+            // Liberar la mesa
+            mesa.estado = "Libre";
+
+            await _context.SaveChangesAsync();
+
+
+            return RedirectToAction("Index");
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> FinalizarOrdenParaLlevar(Guid codigo_orden)
+        {
+            // Obtener todas las órdenes para llevar con ese código
+            var ordenes = await _context.ordenes
+                .Where(o => o.codigo_orden == codigo_orden && o.para_llevar && o.estado != "Finalizada")
+                .ToListAsync();
+
+            if (!ordenes.Any())
+            {
+                TempData["ErrorMessage"] = "No hay órdenes activas para finalizar.";
+                return RedirectToAction("Index");
+            }
+
+            // Verificar que todas estén entregadas
+            if (ordenes.Any(o => o.estado != "Entregada"))
+            {
+                TempData["ErrorMessage"] = "Solo se puede finalizar si todos los productos han sido entregados.";
+                return RedirectToAction("VerOrdenParaLlevar", new { id = codigo_orden });
+            }
+
+            // Cambiar estado a Finalizada
+            foreach (var orden in ordenes)
+            {
+                orden.estado = "Finalizada";
+            }
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
+
+
+
+
+
 
 
 

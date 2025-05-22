@@ -1,59 +1,125 @@
 ﻿@model IEnumerable<El_Tringulito.Models.Promociones>
-
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Promociones";
+    var platos = ViewBag.Platos as List<El_Tringulito.Models.Platos>;
+    var combos = ViewBag.Combos as List<El_Tringulito.Models.combos>;
 }
 
-<h1>Index</h1>
+<style>
+    body {
+        background: linear-gradient(to bottom, #000, #d4af37);
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.id_plato)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.id_combo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.fecha_inicio)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.fecha_fin)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.precio)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.id_plato)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.id_combo)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.fecha_inicio)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.fecha_fin)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.precio)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.id_promocion">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.id_promocion">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.id_promocion">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    .card {
+        background-color: #1e1e1e;
+        border: 1px solid #ffc107;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-primary, .btn-success {
+        font-weight: bold;
+        border-radius: 8px;
+    }
+
+    .btn-primary {
+        background-color: #d4af37;
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background-color: #f0c94d;
+            color: black;
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        border: none;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+    .table {
+        background-color: #2c2c2c;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+        .table th, .table td {
+            color: white;
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table th {
+            background-color: #444;
+            color: #ffc107;
+        }
+
+    .table-hover tbody tr:hover {
+        background-color: #3d3d3d;
+    }
+
+    .acciones a {
+        margin-right: 5px;
+    }
+
+    h1 {
+        color: #ffc107;
+    }
+
+    .crear-btn {
+        float: right;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1><i class="bi bi-stars me-2"></i>Promociones</h1>
+            <a asp-action="Create" class="btn btn-primary crear-btn">
+                <i class="bi bi-plus-circle-fill"></i> Nueva Promoción
+            </a>
+        </div>
+
+        <table class="table table-hover table-bordered">
+            <thead>
+                <tr>
+                    <th>Plato</th>
+                    <th>Combo</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Precio con Descuento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@(platos.FirstOrDefault(p => p.id_plato == item.id_plato)?.nombre ?? "-")</td>
+                        <td>@(combos.FirstOrDefault(c => c.id_combo == item.id_combo)?.nombre ?? "-")</td>
+                        <td>@item.fecha_inicio?.ToString("dd/MM/yyyy")</td>
+                        <td>@item.fecha_fin?.ToString("dd/MM/yyyy")</td>
+                        <td>$@item.precio?.ToString("F2")</td>
+                        <td class="acciones">
+                            <a asp-action="Edit" asp-route-id="@item.id_promocion" class="btn btn-sm btn-warning text-dark">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.id_promocion" class="btn btn-sm btn-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -230,8 +230,10 @@ namespace El_Tringulito.Controllers
 
         public async Task<IActionResult> GetPromociones()
         {
+            ActualizarEstadosPromociones();
+
             var promociones = await _context.promociones
-                .Where(p => p.fecha_inicio <= DateTime.Now && p.fecha_fin >= DateTime.Now)
+                .Where(p => p.estado == "activa")
                 .ToListAsync();
 
             var promos = promociones.Select(p =>
@@ -250,6 +252,7 @@ namespace El_Tringulito.Controllers
 
             return Json(promos);
         }
+
 
 
         public async Task<IActionResult> GetCombos()
@@ -346,7 +349,7 @@ namespace El_Tringulito.Controllers
                     .FirstOrDefault();
             }
 
-            if (codigoExistente == null)
+            if (!codigoExistente.HasValue || codigoExistente == Guid.Empty)
             {
                 codigoExistente = Guid.NewGuid();
             }
@@ -365,7 +368,7 @@ namespace El_Tringulito.Controllers
                         estado = "Pendiente",
                         total = precio,
                         para_llevar = esParaLlevar || producto.paraLlevar,
-                        codigo_orden = codigoExistente
+                        codigo_orden = codigoExistente.Value
                     };
 
                     if (producto.tipo == "platos") nuevaOrden.id_plato = producto.id;
@@ -392,9 +395,11 @@ namespace El_Tringulito.Controllers
             }
             else
             {
-                return RedirectToAction("VerOrdenParaLlevar", new { id = codigoExistente });
+                return RedirectToAction("VerOrdenParaLlevar", new { id = codigoExistente.Value });
             }
         }
+
+
 
 
         [HttpPost]
@@ -541,6 +546,33 @@ namespace El_Tringulito.Controllers
 
             return View(); // Vista: Views/MesasMesero/ParaLlevar.cshtml
         }
+
+
+
+
+
+        private void ActualizarEstadosPromociones()
+        {
+            var hoy = DateTime.Now;
+            var promociones = _context.promociones.ToList();
+
+            foreach (var promo in promociones)
+            {
+                if (promo.fecha_fin.HasValue && promo.fecha_fin.Value < hoy)
+                {
+                    promo.estado = "vencida";
+                }
+                else
+                {
+                    promo.estado = "activa";
+                }
+            }
+
+            _context.SaveChanges();
+        }
+
+
+
 
 
 

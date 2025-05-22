@@ -20,6 +20,8 @@
         .card {
             background-color: #2C2C3A;
             border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .btn-primary {
@@ -96,17 +98,97 @@
             margin-left: 5px;
         }
 
+        /* Estilos para la sección de productos seleccionados */
         #productosSeleccionados {
+            background-color: #2A2A3A;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+        }
+
+        #listaSeleccionados {
             max-height: 400px;
             overflow-y: auto;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 10px;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .producto-item {
             background-color: #1E1E2F;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #444;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+            .producto-item:hover {
+                background-color: #2A2A3A;
+            }
+
+            .producto-item .producto-content {
+                padding: 15px;
+            }
+
+        .eliminar-btn {
+            transition: all 0.2s ease;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .eliminar-btn:hover {
+                background-color: #FF4C4C !important;
+            }
+
+        .comentario-input {
+            background-color: #1E1E2F;
+            color: white;
+            border: 1px solid #444;
+            resize: vertical;
+        }
+
+        /* Scrollbar personalizada */
+        #listaSeleccionados::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #listaSeleccionados::-webkit-scrollbar-track {
+            background: #2A2A3A;
+            border-radius: 10px;
+        }
+
+        #listaSeleccionados::-webkit-scrollbar-thumb {
+            background: #A259FF;
+            border-radius: 10px;
+        }
+
+        /* Responsividad */
+        @@media (max-width: 768px) {
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            #productosSeleccionados {
+                padding: 10px;
+            }
+
+            .producto-item .producto-content {
+                padding: 10px;
+            }
         }
     </style>
 }
-
 
 <div class="container py-5">
     <h1 class="text-center my-4">@nombreEntidad - @(tieneOrden ? $"Orden {ViewBag.EstadoGeneral}" : "Sin Orden")</h1>
@@ -159,6 +241,7 @@
         <form asp-action="ActualizarOrden" method="post" onsubmit="agregarCamposOcultos()">
             @if (!esParaLlevar)
             {
+                <input type="hidden" name="codigoOrden" value="@ViewBag.CodigoOrden" />
                 <input type="hidden" asp-for="id_mesa" />
             }
 
@@ -194,43 +277,55 @@
                     }
                 </div>
             </div>
-            <div id="productosSeleccionados" class="mb-4">
-                <h4 class="text-white">
-                    Productos Seleccionados:
-                    <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="Lista completa de productos de la orden."></i>
-                </h4>
-                <ul class="list-group" id="listaSeleccionados">
-                    @if (tieneOrden)
-                    {
-                        foreach (var item in ViewBag.OrdenesActivas)
-                        {
-                            string estado = item.Orden.estado;
-                            string estadoClase = estado == "Pendiente" ? "badge-pendiente" :
-                            estado == "En Proceso" ? "badge-enproceso" : "badge-entregada";
 
-                            string itemId = $"prod_{item.Orden.id_orden}";
-                            <li class="list-group-item producto-item p-0 bg-dark text-white" id="@itemId">
-                                <div class="p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div>
-                                            <strong>@item.NombreProducto</strong> - $@item.Orden.total?.ToString("F2")
-                                            <span class="badge bg-secondary ms-2">@item.TipoProducto</span>
-                                            <span class="badge @estadoClase ms-2">@estado</span>
-                                            @if (item.Orden.para_llevar)
-                                            {
-                                                <span class="badge badge-para-llevar ms-2">Para llevar</span>
-                                            }
+            <div id="productosSeleccionados">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-white mb-0">
+                        Productos Seleccionados
+                        <i class="bi bi-info-circle" data-bs-toggle="tooltip" title="Lista de productos en la orden actual"></i>
+                    </h4>
+                    <span class="badge bg-secondary" id="contadorProductos">
+                        @(tieneOrden ? ViewBag.OrdenesActivas.Count : 0) productos
+                    </span>
+                </div>
+
+                <div class="border rounded-3" style="background-color: #1E1E2F;">
+                    <ul id="listaSeleccionados">
+                        @if (tieneOrden)
+                        {
+                            foreach (var item in ViewBag.OrdenesActivas)
+                            {
+                                string estado = item.Orden.estado;
+                                string estadoClase = estado == "Pendiente" ? "badge-pendiente" :
+                                estado == "En Proceso" ? "badge-enproceso" : "badge-entregada";
+
+                                string itemId = $"prod_{item.Orden.id_orden}";
+                                <li class="producto-item" id="@itemId">
+                                    <div class="producto-content">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <strong>@item.NombreProducto</strong>
+                                                <span class="text-warning">$@item.Orden.total?.ToString("F2")</span>
+                                                <span class="badge bg-secondary">@item.TipoProducto</span>
+                                                <span class="badge @estadoClase">@estado</span>
+                                                @if (item.Orden.para_llevar)
+                                                {
+                                                    <span class="badge badge-para-llevar">Para llevar</span>
+                                                }
+                                            </div>
                                         </div>
+                                        @if (!string.IsNullOrEmpty(item.Orden.comentario))
+                                        {
+                                            <div class="bg-dark p-2 rounded mt-2 small">
+                                                @Html.Raw(item.Orden.comentario.Replace("Incluye:", "<strong>Incluye:</strong><ul><li>").Replace(" + ", "</li><li>") + "</li></ul>")
+                                            </div>
+                                        }
                                     </div>
-                                    @if (!string.IsNullOrEmpty(item.Orden.comentario))
-                                    {
-                                        <p class="small">@Html.Raw(item.Orden.comentario.Replace("Incluye:", "<strong>Incluye:</strong><ul><li>").Replace(" + ", "</li><li>") + "</li></ul>")</p>
-                                    }
-                                </div>
-                            </li>
+                                </li>
+                            }
                         }
-                    }
-                </ul>
+                    </ul>
+                </div>
             </div>
 
             <div class="form-group mb-3">
@@ -296,8 +391,6 @@
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-
     <script>
         let total = @(tieneOrden ? ViewBag.TotalOrdenes : 0);
         let productosSeleccionados = [];
@@ -306,6 +399,7 @@
 
         $(document).ready(function () {
             $('[data-bs-toggle="tooltip"]').tooltip();
+            actualizarContadorProductos();
         });
 
         function escapeHtml(text) {
@@ -370,17 +464,21 @@
         }
 
         function mostrarProductosEnModal(data, tipo) {
-            let html = `<h5 class="mb-3 text-capitalize">${tipo}</h5><div class="row">`;
+            let html = `<div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="text-capitalize mb-0">${tipo}</h5>
+                            <span class="badge bg-secondary">${data.length} productos</span>
+                         </div><div class="row g-3">`;
+
             data.forEach(p => {
                 let id = p.id_plato || p.id_promocion || p.id_combo;
                 html += `
                     <div class="col-md-4 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h5>${p.nombre}</h5>
-                                <h6 class="text-muted">$${p.precio.toFixed(2)}</h6>
-                                <p>${formatearDescripcion(p.descripcion)}</p>
-                                <button class="btn btn-primary w-100" onclick="agregarProducto(${id}, '${tipo}', '${escapeHtml(p.nombre)}', ${p.precio})">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">${p.nombre}</h5>
+                                <h6 class="text-warning mb-3">$${p.precio.toFixed(2)}</h6>
+                                <div class="card-text mb-3 flex-grow-1">${formatearDescripcion(p.descripcion)}</div>
+                                <button class="btn btn-primary mt-auto" onclick="agregarProducto(${id}, '${tipo}', '${escapeHtml(p.nombre)}', ${p.precio})">
                                     <i class="bi bi-plus-circle"></i> Agregar
                                 </button>
                             </div>
@@ -393,10 +491,10 @@
         }
 
         function formatearDescripcion(texto) {
-            if (!texto) return 'Sin descripción';
+            if (!texto) return '<span class="text-muted">Sin descripción</span>';
             if (texto.includes("Incluye:")) {
                 const partes = texto.replace("Incluye:", "").split(" + ");
-                return `<strong>Incluye:</strong><ul>${partes.map(p => `<li>${p.trim()}</li>`).join('')}</ul>`;
+                return `<strong>Incluye:</strong><ul class="mb-0">${partes.map(p => `<li>${p.trim()}</li>`).join('')}</ul>`;
             }
             return texto;
         }
@@ -416,35 +514,43 @@
             });
 
             const html = `
-                <li class="list-group-item producto-item p-0 bg-dark text-white" id="${itemId}">
-                    <div class="p-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                                <strong>${nombre}</strong> - $${precio.toFixed(2)}
-                                <i class="bi bi-info-circle ms-2" data-bs-toggle="tooltip" title="Producto ${tipo}"></i>
-                                <span class="badge bg-primary ms-2">En Proceso</span>
-                                ${esParaLlevar ? '<span class="badge badge-para-llevar ms-2">Para llevar</span>' : ''}
+                <li class="producto-item" id="${itemId}">
+                    <div class="producto-content">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <strong>${nombre}</strong>
+                                <span class="text-warning">$${precio.toFixed(2)}</span>
+                                <span class="badge bg-primary">${tipo.charAt(0).toUpperCase() + tipo.slice(1)}</span>
+                                <span class="badge bg-warning text-dark">Nuevo</span>
+                                ${esParaLlevar ? '<span class="badge badge-para-llevar">Para llevar</span>' : ''}
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn p-1"
+                            <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn"
                                 onclick="eliminarProducto('${itemId}', ${precio})">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
                         <div class="form-group mt-2">
                             <label class="small text-muted">
-                                <i class="bi bi-chat-left-text"></i> Comentarios:
+                                <i class="bi bi-chat-left-text"></i> Comentarios (opcional):
                             </label>
                             <textarea class="form-control form-control-sm comentario-input" rows="2"
-                                      onchange="actualizarComentario('${itemId}', this.value)"
-                                      placeholder="Ej: Sin picante, bien cocido, etc."></textarea>
+                                    onchange="actualizarComentario('${itemId}', this.value)"
+                                    placeholder="Ej: Sin picante, bien cocido, etc."></textarea>
                         </div>
                     </div>
                 </li>`;
-            $("#listaSeleccionados").append(html);
+
+            // Agregar al principio de la lista
+            $("#listaSeleccionados").prepend(html);
+
             total += precio;
             $("#total").val(total.toFixed(2));
+            actualizarContadorProductos();
             $('[data-bs-toggle="tooltip"]').tooltip();
             bootstrap.Modal.getInstance(document.getElementById('productosModal'))?.hide();
+
+            // Hacer scroll al nuevo elemento
+            document.getElementById(itemId).scrollIntoView({ behavior: 'smooth' });
         }
 
         function actualizarComentario(itemId, comentario) {
@@ -462,6 +568,12 @@
                 productosSeleccionados.splice(index, 1);
             }
             $("#total").val(total.toFixed(2));
+            actualizarContadorProductos();
+        }
+
+        function actualizarContadorProductos() {
+            const count = $("#listaSeleccionados li").length;
+            $("#contadorProductos").text(count + " productos");
         }
 
         function agregarCamposOcultos() {
@@ -473,8 +585,7 @@
                     <input type="hidden" name="productos[${i}].tipo" value="${p.tipo}" />
                     <input type="hidden" name="productos[${i}].comentario" value="${escapeHtml(p.comentario)}" />
                     <input type="hidden" name="productos[${i}].precio" value="${p.precio}" />
-                    <input type="hidden" name="productos[${i}].paraLlevar" value="${p.paraLlevar ? true : false}" />
-
+                    <input type="hidden" name="productos[${i}].paraLlevar" value="${p.paraLlevar}" />
                 `);
             });
         }

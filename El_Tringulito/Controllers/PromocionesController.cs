@@ -20,7 +20,11 @@ namespace El_Tringulito.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _context.promociones.ToListAsync());
+
+            var promociones = await _context.promociones.ToListAsync();
+            ViewBag.Platos = await _context.platos.ToListAsync();
+            ViewBag.Combos = await _context.combos.ToListAsync();
+            return View(promociones);
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -133,11 +137,20 @@ namespace El_Tringulito.Controllers
         {
             if (id == null) return NotFound();
 
-            var promociones = await _context.promociones.FirstOrDefaultAsync(m => m.id_promocion == id);
-            if (promociones == null) return NotFound();
+            var promo = await _context.promociones.FirstOrDefaultAsync(m => m.id_promocion == id);
+            if (promo == null) return NotFound();
 
-            return View(promociones);
+            ViewBag.NombrePlato = promo.id_plato.HasValue
+                ? _context.platos.FirstOrDefault(p => p.id_plato == promo.id_plato)?.nombre
+                : null;
+
+            ViewBag.NombreCombo = promo.id_combo.HasValue
+                ? _context.combos.FirstOrDefault(c => c.id_combo == promo.id_combo)?.nombre
+                : null;
+
+            return View(promo);
         }
+
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]

@@ -5,6 +5,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <Content Remove="Views\Promociones\Details.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.SignalR" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

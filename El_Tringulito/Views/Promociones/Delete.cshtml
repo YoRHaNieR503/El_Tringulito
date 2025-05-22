@@ -1,51 +1,97 @@
 ﻿@model El_Tringulito.Models.Promociones
-
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Eliminar Promoción";
+    var nombrePlato = ViewBag.NombrePlato as string;
+    var nombreCombo = ViewBag.NombreCombo as string;
 }
 
-<h1>Delete</h1>
+<style>
+    body {
+        background: linear-gradient(to bottom, #000, #d4af37);
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Promociones</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.id_plato)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.id_plato)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.id_combo)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.id_combo)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.fecha_inicio)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.fecha_inicio)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.fecha_fin)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.fecha_fin)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.precio)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.precio)
-        </dd>
+    .card {
+        background-color: #1e1e1e;
+        border: 1px solid #ffc107;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        margin: 40px auto;
+        max-width: 700px;
+    }
+
+    h2 {
+        color: #ffc107;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .dl-horizontal dt {
+        font-weight: bold;
+        color: #ffc107;
+    }
+
+    .dl-horizontal dd {
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+        font-weight: bold;
+        padding: 10px 20px;
+        color: white;
+    }
+
+        .btn-danger:hover {
+            background-color: #ff5c75;
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        font-weight: bold;
+        padding: 10px 20px;
+        margin-left: 10px;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+</style>
+
+<div class="card">
+    <h2><i class="bi bi-trash3-fill me-2"></i>Confirmar Eliminación</h2>
+
+    <p class="text-center">¿Estás seguro de que deseas eliminar esta promoción?</p>
+
+    <dl class="row dl-horizontal">
+        <dt class="col-sm-4">Plato</dt>
+        <dd class="col-sm-8">@(!string.IsNullOrEmpty(nombrePlato) ? nombrePlato : "—")</dd>
+
+        <dt class="col-sm-4">Combo</dt>
+        <dd class="col-sm-8">@(!string.IsNullOrEmpty(nombreCombo) ? nombreCombo : "—")</dd>
+
+        <dt class="col-sm-4">Fecha de Inicio</dt>
+        <dd class="col-sm-8">@Model.fecha_inicio?.ToString("yyyy-MM-dd")</dd>
+
+        <dt class="col-sm-4">Fecha de Fin</dt>
+        <dd class="col-sm-8">@Model.fecha_fin?.ToString("yyyy-MM-dd")</dd>
+
+        <dt class="col-sm-4">Precio</dt>
+        <dd class="col-sm-8">$@Model.precio?.ToString("F2")</dd>
     </dl>
-    
+
     <form asp-action="Delete">
         <input type="hidden" asp-for="id_promocion" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <div class="action-buttons">
+            <input type="submit" value="Eliminar" class="btn btn-danger" />
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </div>
     </form>
 </div>

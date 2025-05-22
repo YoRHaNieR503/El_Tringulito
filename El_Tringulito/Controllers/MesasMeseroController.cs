@@ -90,6 +90,12 @@ namespace El_Tringulito.Controllers
 
             var puedeFinalizar = ordenesActivas.Any() && ordenesActivas.All(o => o.Orden.estado == "Entregada");
 
+            var ordenesAgrupadas = ordenesActivas
+        .GroupBy(o => o.Orden.codigo_orden.ToString()) // Convertir a string aquí
+        .ToList();
+
+            ViewBag.OrdenesAgrupadas = ordenesAgrupadas;
+
             ViewBag.OrdenesActivas = ordenesActivas;
             ViewBag.TotalOrdenes = ordenesActivas.Sum(o => o.Orden.total);
             ViewBag.NombreCliente = ordenesActivas.FirstOrDefault()?.Orden.nombre_cliente ?? "";
@@ -325,78 +331,73 @@ namespace El_Tringulito.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> ActualizarOrden(int id_mesa, string nombre_cliente, decimal total, List<ProductoSeleccionado> productos)
+        public async Task<IActionResult> ActualizarOrden(int id_mesa, string nombre_cliente, decimal total,
+     List<ProductoSeleccionado> productos, Guid? codigoOrden)
         {
-            if (!ModelState.IsValid) return BadRequest();
+            if (!ModelState.IsValid || productos == null || !productos.Any())
+                return BadRequest("Datos inválidos o productos vacíos.");
 
             bool esParaLlevar = id_mesa == 0;
-            Guid? codigoExistente = null;
+            Guid codigoExistente;
 
-            if (esParaLlevar)
+            // Determinar el código de orden existente
+            if (codigoOrden.HasValue && codigoOrden != Guid.Empty)
             {
-                codigoExistente = _context.ordenes
-                    .Where(o => o.para_llevar && o.nombre_cliente == nombre_cliente && o.estado != "Finalizada")
-                    .OrderByDescending(o => o.fecha)
-                    .Select(o => o.codigo_orden)
-                    .FirstOrDefault();
+                // Usar el código proporcionado
+                codigoExistente = codigoOrden.Value;
             }
             else
             {
-                codigoExistente = _context.ordenes
-                    .Where(o => o.id_mesa == id_mesa && o.estado != "Finalizada")
+                // Buscar el código de orden existente para esta mesa o para llevar
+                var ordenExistente = _context.ordenes
+                    .Where(o => esParaLlevar
+                        ? o.para_llevar && o.nombre_cliente == nombre_cliente && o.estado != "Finalizada"
+                        : o.id_mesa == id_mesa && o.estado != "Finalizada")
                     .OrderByDescending(o => o.fecha)
-                    .Select(o => o.codigo_orden)
                     .FirstOrDefault();
+
+                codigoExistente = ordenExistente?.codigo_orden ?? Guid.NewGuid();
             }
 
-            if (!codigoExistente.HasValue || codigoExistente == Guid.Empty)
+            // Crear nuevas órdenes con el mismo código
+            foreach (var producto in productos)
             {
-                codigoExistente = Guid.NewGuid();
-            }
-
-            if (productos != null && productos.Any())
-            {
-                foreach (var producto in productos)
+                var precio = await ObtenerPrecioProducto(producto);
+                var nuevaOrden = new Ordenes
                 {
-                    var precio = await ObtenerPrecioProducto(producto);
-                    var nuevaOrden = new Ordenes
-                    {
-                        id_mesa = esParaLlevar ? null : id_mesa,
-                        nombre_cliente = nombre_cliente,
-                        comentario = producto.comentario,
-                        fecha = DateTime.Now,
-                        estado = "Pendiente",
-                        total = precio,
-                        para_llevar = esParaLlevar || producto.paraLlevar,
-                        codigo_orden = codigoExistente.Value
-                    };
+                    id_mesa = esParaLlevar ? null : id_mesa,
+                    nombre_cliente = nombre_cliente,
+                    comentario = producto.comentario,
+                    fecha = DateTime.Now,
+                    estado = "Pendiente",
+                    total = precio,
+                    para_llevar = esParaLlevar || producto.paraLlevar,
+                    codigo_orden = codigoExistente
+                };
 
-                    if (producto.tipo == "platos") nuevaOrden.id_plato = producto.id;
-                    else if (producto.tipo == "promociones") nuevaOrden.id_promocion = producto.id;
-                    else if (producto.tipo == "combos") nuevaOrden.id_combo = producto.id;
+                if (producto.tipo == "platos") nuevaOrden.id_plato = producto.id;
+                else if (producto.tipo == "promociones") nuevaOrden.id_promocion = producto.id;
+                else if (producto.tipo == "combos") nuevaOrden.id_combo = producto.id;
 
-                    _context.ordenes.Add(nuevaOrden);
-                }
-
-                await _context.SaveChangesAsync();
-                await _hubContext.Clients.All.SendAsync("NuevaOrdenAgregada", id_mesa);
+                _context.ordenes.Add(nuevaOrden);
             }
 
+            await _context.SaveChangesAsync();
+            await _hubContext.Clients.All.SendAsync("NuevaOrdenAgregada", id_mesa);
+
+            // Actualizar estado de la mesa si no es para llevar
             if (!esParaLlevar)
             {
-                var mesa = _context.mesas.FirstOrDefault(m => m.id_mesa == id_mesa);
-                if (mesa != null)
+                var mesa = await _context.mesas.FindAsync(id_mesa);
+                if (mesa != null && mesa.estado != "Ocupada")
                 {
                     mesa.estado = "Ocupada";
                     await _context.SaveChangesAsync();
                 }
-
                 return RedirectToAction("VerOrden", new { id = id_mesa });
             }
-            else
-            {
-                return RedirectToAction("VerOrdenParaLlevar", new { id = codigoExistente.Value });
-            }
+
+            return RedirectToAction("VerOrdenParaLlevar", new { id = codigoExistente });
         }
 
 

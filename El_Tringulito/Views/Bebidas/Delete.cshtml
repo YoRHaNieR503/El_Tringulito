@@ -1,33 +1,86 @@
 ﻿@model El_Tringulito.Models.Bebidas
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Eliminar Bebida";
 }
 
-<h1>Delete</h1>
+<div class="container mt-5">
+    <div class="card bg-dark text-light shadow-lg">
+        <div class="card-header border-0">
+            <h2 class="mb-0"><i class="bi bi-trash me-2"></i>Eliminar Bebida</h2>
+        </div>
+        <div class="card-body">
+            <p class="lead">¿Estás seguro que deseas eliminar esta bebida?</p>
+            <dl class="row">
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.nombre)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.nombre)</dd>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Bebidas</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.nombre)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.nombre)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.precio)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.precio)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="id_bebida" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+                <dt class="col-sm-3">@Html.DisplayNameFor(m => m.precio)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(m => m.precio)</dd>
+            </dl>
+
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="id_bebida" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Eliminar
+                </button>
+                <a asp-action="Index" class="btn btn-outline-light ms-2">Cancelar</a>
+            </form>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<style>
+    body {
+        background: linear-gradient(to bottom, #2d1b00, #a66f00);
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
+
+    .card {
+        background-color: rgba(0, 0, 0, 0.3);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+    .card-header {
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 20px 20px 0 0;
+        font-weight: bold;
+        color: white;
+        border-bottom: none;
+        text-align: center;
+    }
+
+    .btn {
+        border-radius: 10px;
+    }
+
+    .btn-outline-light {
+        border-radius: 10px;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+
+    dl dt {
+        font-weight: bold;
+    }
+
+    dl dd {
+        color: #f8f9fa;
+    }
+</style>

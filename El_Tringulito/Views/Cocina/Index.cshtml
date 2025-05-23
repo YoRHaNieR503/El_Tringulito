@@ -175,7 +175,8 @@
                                 {
                                     <li class="list-group-item @(item.ParaLlevar ? "producto-para-llevar" : "producto-consumo-sitio") d-flex justify-content-between align-items-start">
                                         <div>
-                                            <strong>@item.NombreProducto</strong>
+                                            <strong>@Html.Raw(item.NombreProducto)</strong>
+
                                             <span class="badge ms-2 @(item.ParaLlevar ? "badge-para-llevar" : "badge-consumo-sitio")">
                                                 <i class="bi @(item.ParaLlevar ? "bi-bag-check" : "bi-egg-fried")"></i>
                                                 @(item.ParaLlevar ? "Para llevar" : "En sitio")

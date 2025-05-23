@@ -3,6 +3,7 @@
     ViewData["Title"] = "Eliminar Promoción";
     var nombrePlato = ViewBag.NombrePlato as string;
     var nombreCombo = ViewBag.NombreCombo as string;
+    var nombreBebida = ViewBag.NombreBebida as string;
 }
 
 <style>
@@ -76,6 +77,9 @@
 
         <dt class="col-sm-4">Combo</dt>
         <dd class="col-sm-8">@(!string.IsNullOrEmpty(nombreCombo) ? nombreCombo : "—")</dd>
+
+        <dt class="col-sm-4">Bebida</dt>
+        <dd class="col-sm-8">@(!string.IsNullOrEmpty(nombreBebida) ? nombreBebida : "—")</dd>
 
         <dt class="col-sm-4">Fecha de Inicio</dt>
         <dd class="col-sm-8">@Model.fecha_inicio?.ToString("yyyy-MM-dd")</dd>

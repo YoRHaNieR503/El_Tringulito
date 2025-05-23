@@ -90,6 +90,11 @@
         </div>
 
         <div class="form-group">
+            <label for="id_bebida">Bebida (opcional)</label>
+            @Html.DropDownList("id_bebida", ViewBag.Bebidas as SelectList, "-- Seleccionar bebida --", new { @class = "form-control", @id = "id_bebida" })
+        </div>
+
+        <div class="form-group">
             <label asp-for="fecha_inicio"></label>
             <input asp-for="fecha_inicio" class="form-control" type="date" id="fecha_inicio" readonly />
             <span asp-validation-for="fecha_inicio" class="text-danger"></span>
@@ -124,15 +129,19 @@
     <script>
         const preciosPlatos = @Html.Raw(Json.Serialize(ViewBag.PreciosPlatos));
         const preciosCombos = @Html.Raw(Json.Serialize(ViewBag.PreciosCombos));
+        const preciosBebidas = @Html.Raw(Json.Serialize(ViewBag.PreciosBebidas));
 
         function actualizarPrecioFinal() {
             const platoId = document.getElementById("id_plato").value;
             const comboId = document.getElementById("id_combo").value;
+            const bebidaId = document.getElementById("id_bebida").value;
             const descuento = parseFloat(document.getElementById("porcentaje_descuento").value || 0);
 
             const precioPlato = preciosPlatos[platoId] || 0;
             const precioCombo = preciosCombos[comboId] || 0;
-            const total = precioPlato + precioCombo;
+            const precioBebida = preciosBebidas[bebidaId] || 0;
+
+            const total = precioPlato + precioCombo + precioBebida;
             const precioFinal = total - (total * (descuento / 100));
 
             document.getElementById("precio").value = precioFinal.toFixed(2);
@@ -155,33 +164,7 @@
 
             document.getElementById("id_plato").addEventListener("change", actualizarPrecioFinal);
             document.getElementById("id_combo").addEventListener("change", actualizarPrecioFinal);
-
-            document.getElementById("formPromocion").addEventListener("submit", function (e) {
-                const descuento = parseInt(document.getElementById("porcentaje_descuento").value);
-                const fechaFinValue = document.getElementById("fecha_fin").value;
-                const plato = document.getElementById("id_plato").value;
-                const combo = document.getElementById("id_combo").value;
-
-                if (!plato && !combo) {
-                    e.preventDefault();
-                    alert("Debe seleccionar al menos un plato o un combo.");
-                    return false;
-                }
-
-                if (fechaFinValue < hoy) {
-                    e.preventDefault();
-                    alert("La fecha de fin no puede ser anterior a hoy.");
-                    return false;
-                }
-
-                if (isNaN(descuento) || descuento <= 0 || descuento > 100) {
-                    e.preventDefault();
-                    document.getElementById("descuento-error").style.display = "block";
-                    return false;
-                }
-
-                return true;
-            });
+            document.getElementById("id_bebida").addEventListener("change", actualizarPrecioFinal);
 
             actualizarPrecioFinal();
         });

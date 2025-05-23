@@ -76,7 +76,7 @@ namespace El_Tringulito.Controllers
                     Orden = o,
                     NombreProducto =
                                     o.id_plato != null ? _context.platos.FirstOrDefault(p => p.id_plato == o.id_plato)?.nombre ?? "Plato desconocido" :
-                                    o.id_promocion != null ? GetNombrePromocion(o.id_promocion.Value) :
+                                    o.id_promocion != null ? GetDescripcionPromocion(o.id_promocion.Value) :
                                     o.id_combo != null ? _context.combos.FirstOrDefault(c => c.id_combo == o.id_combo)?.nombre ?? "Combo desconocido" :
                                     o.id_bebida != null ? _context.bebidas.FirstOrDefault(b => b.id_bebida == o.id_bebida)?.nombre ?? "Bebida desconocida" :
                                     "Producto desconocido",
@@ -235,24 +235,22 @@ namespace El_Tringulito.Controllers
             await _context.SaveChangesAsync();
             await _hubContext.Clients.All.SendAsync("NuevaOrdenCreada", -1);
 
-            TempData["SuccessMessage"] = "Orden para llevar creada exitosamente";
             return RedirectToAction("Index");
         }
         public async Task<IActionResult> GetBebidas()
         {
-       
             var bebidas = await _context.bebidas.ToListAsync();
 
             var resultado = bebidas.Select(b => new
             {
-                id = b.id_bebida,   // <- nombre estándar como el resto
+                id_bebida = b.id_bebida, // mantenerlo claro aquí
                 nombre = b.nombre,
                 precio = b.precio
             });
 
-
             return Json(resultado);
         }
+
 
 
 
@@ -275,13 +273,13 @@ namespace El_Tringulito.Controllers
 
             var promos = promociones.Select(p =>
             {
-                string nombre = GetNombrePromocionTitulo(p);
-                string descripcion = GetDescripcionPromocion(p);
+                string nombre = GetNombrePromocion(p.id_promocion);
+                string descripcion = GetDescripcionPromocionHTML(p.id_promocion); // Genera HTML bonito
 
                 return new
                 {
-                    p.id_promocion,
-                    p.precio,
+                    id_promocion = p.id_promocion,
+                    precio = p.precio,
                     nombre,
                     descripcion
                 };
@@ -289,6 +287,34 @@ namespace El_Tringulito.Controllers
 
             return Json(promos);
         }
+        private string GetDescripcionPromocionHTML(int idPromocion)
+        {
+            var promo = _context.promociones.FirstOrDefault(p => p.id_promocion == idPromocion);
+            if (promo == null) return "<ul class='promocion-lista'><li>Promoción no encontrada</li></ul>";
+
+            List<string> partes = new();
+
+            if (promo.id_plato.HasValue)
+            {
+                var plato = _context.platos.FirstOrDefault(p => p.id_plato == promo.id_plato);
+                if (plato != null) partes.Add($"<li>Plato: {plato.nombre}</li>");
+            }
+
+            if (promo.id_combo.HasValue)
+            {
+                var combo = _context.combos.FirstOrDefault(c => c.id_combo == promo.id_combo);
+                if (combo != null) partes.Add($"<li>Combo: {combo.nombre}</li>");
+            }
+
+            if (promo.id_bebida.HasValue)
+            {
+                var bebida = _context.bebidas.FirstOrDefault(b => b.id_bebida == promo.id_bebida);
+                if (bebida != null) partes.Add($"<li>Bebida: {bebida.nombre}</li>");
+            }
+
+            return $"<ul class='promocion-lista'>{string.Join("", partes)}</ul>";
+        }
+
 
 
 
@@ -341,26 +367,34 @@ namespace El_Tringulito.Controllers
         }
 
 
-        private string GetDescripcionPromocion(Promociones promo)
+        private string GetDescripcionPromocion(int idPromocion)
         {
-            List<string> partes = new List<string>();
+            var promo = _context.promociones.FirstOrDefault(p => p.id_promocion == idPromocion);
+            if (promo == null) return "Promoción no encontrada.";
+
+            List<string> partes = new();
 
             if (promo.id_plato.HasValue)
             {
                 var plato = _context.platos.FirstOrDefault(p => p.id_plato == promo.id_plato);
-                if (plato != null)
-                    partes.Add($"<li><strong>Plato:</strong> {plato.nombre}</li>");
+                if (plato != null) partes.Add($"<li><strong>Plato:</strong> {plato.nombre}</li>");
             }
 
             if (promo.id_combo.HasValue)
             {
                 var combo = _context.combos.FirstOrDefault(c => c.id_combo == promo.id_combo);
-                if (combo != null)
-                    partes.Add($"<li><strong>Combo:</strong> {combo.nombre}</li>");
+                if (combo != null) partes.Add($"<li><strong>Combo:</strong> {combo.nombre}</li>");
             }
 
-            return partes.Any() ? $"<ul class='mb-0 ps-3'>{string.Join("", partes)}</ul>" : "Promoción sin detalles.";
+            if (promo.id_bebida.HasValue)
+            {
+                var bebida = _context.bebidas.FirstOrDefault(b => b.id_bebida == promo.id_bebida);
+                if (bebida != null) partes.Add($"<li><strong>Bebida:</strong> {bebida.nombre}</li>");
+            }
+
+            return $"<ul class='mb-0 ps-3'>{string.Join("", partes)}</ul>";
         }
+
 
 
 
@@ -529,7 +563,7 @@ namespace El_Tringulito.Controllers
             mesa.estado = "Libre";
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Orden finalizada y mesa liberada correctamente.";
+
             return RedirectToAction("Index");
         }
 
@@ -560,7 +594,7 @@ namespace El_Tringulito.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Orden para llevar finalizada exitosamente.";
+
             return RedirectToAction("Index");
         }
 

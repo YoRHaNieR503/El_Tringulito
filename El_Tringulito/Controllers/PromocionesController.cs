@@ -22,17 +22,18 @@ namespace El_Tringulito.Controllers
         {
             var hoy = DateTime.Today;
 
-            // Obtener solo promociones no vencidas
             var promociones = await _context.promociones
                 .Where(p => !p.fecha_fin.HasValue || p.fecha_fin >= hoy)
                 .ToListAsync();
 
-            // Diccionarios de platos y combos por ID
             ViewBag.Platos = await _context.platos.ToDictionaryAsync(p => p.id_plato);
             ViewBag.Combos = await _context.combos.ToDictionaryAsync(c => c.id_combo);
+            ViewBag.Bebidas = await _context.bebidas.ToDictionaryAsync(b => b.id_bebida, b => b.nombre);
 
             return View(promociones);
         }
+
+
 
 
         public async Task<IActionResult> Details(int? id)
@@ -49,42 +50,43 @@ namespace El_Tringulito.Controllers
         {
             ViewBag.Platos = new SelectList(_context.platos, "id_plato", "nombre");
             ViewBag.Combos = new SelectList(_context.combos, "id_combo", "nombre");
+            ViewBag.Bebidas = new SelectList(_context.bebidas, "id_bebida", "nombre");
 
             ViewBag.PreciosPlatos = _context.platos.ToDictionary(p => p.id_plato.ToString(), p => p.precio);
             ViewBag.PreciosCombos = _context.combos.ToDictionary(c => c.id_combo.ToString(), c => c.precio);
+            ViewBag.PreciosBebidas = _context.bebidas.ToDictionary(b => b.id_bebida.ToString(), b => b.precio);
 
             return View();
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Promociones promociones)
         {
-            if (!promociones.id_plato.HasValue && !promociones.id_combo.HasValue)
+            if (!promociones.id_plato.HasValue && !promociones.id_combo.HasValue && !promociones.id_bebida.HasValue)
             {
-                ModelState.AddModelError("", "Debe seleccionar al menos un plato o un combo");
+                ModelState.AddModelError("", "Debe seleccionar al menos un plato, combo o bebida");
             }
 
             if (!ModelState.IsValid)
             {
-                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    Console.WriteLine(error.ErrorMessage);
-                }
-
                 ViewBag.Platos = new SelectList(_context.platos, "id_plato", "nombre", promociones.id_plato);
                 ViewBag.Combos = new SelectList(_context.combos, "id_combo", "nombre", promociones.id_combo);
+                ViewBag.Bebidas = new SelectList(_context.bebidas, "id_bebida", "nombre", promociones.id_bebida);
+
                 ViewBag.PreciosPlatos = _context.platos.ToDictionary(p => p.id_plato.ToString(), p => p.precio);
                 ViewBag.PreciosCombos = _context.combos.ToDictionary(c => c.id_combo.ToString(), c => c.precio);
+                ViewBag.PreciosBebidas = _context.bebidas.ToDictionary(b => b.id_bebida.ToString(), b => b.precio);
 
                 return View(promociones);
             }
 
-            // Ya no se asigna estado
             _context.Add(promociones);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
 
 
         public async Task<IActionResult> Edit(int? id)
@@ -96,11 +98,15 @@ namespace El_Tringulito.Controllers
 
             ViewBag.Platos = new SelectList(_context.platos, "id_plato", "nombre", promociones.id_plato);
             ViewBag.Combos = new SelectList(_context.combos, "id_combo", "nombre", promociones.id_combo);
+            ViewBag.Bebidas = new SelectList(_context.bebidas, "id_bebida", "nombre", promociones.id_bebida);
+
             ViewBag.PreciosPlatos = _context.platos.ToDictionary(p => p.id_plato.ToString(), p => p.precio);
             ViewBag.PreciosCombos = _context.combos.ToDictionary(c => c.id_combo.ToString(), c => c.precio);
+            ViewBag.PreciosBebidas = _context.bebidas.ToDictionary(b => b.id_bebida.ToString(), b => b.precio);
 
             return View(promociones);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -120,6 +126,9 @@ namespace El_Tringulito.Controllers
                     if (promociones.id_combo.HasValue)
                         totalBase += _context.combos.FirstOrDefault(c => c.id_combo == promociones.id_combo)?.precio ?? 0;
 
+                    if (promociones.id_bebida.HasValue)
+                        totalBase += _context.bebidas.FirstOrDefault(b => b.id_bebida == promociones.id_bebida)?.precio ?? 0;
+
                     promociones.precio = totalBase - (totalBase * descuento / 100M);
 
                     _context.Update(promociones);
@@ -137,11 +146,15 @@ namespace El_Tringulito.Controllers
 
             ViewBag.Platos = new SelectList(_context.platos, "id_plato", "nombre", promociones.id_plato);
             ViewBag.Combos = new SelectList(_context.combos, "id_combo", "nombre", promociones.id_combo);
+            ViewBag.Bebidas = new SelectList(_context.bebidas, "id_bebida", "nombre", promociones.id_bebida);
+
             ViewBag.PreciosPlatos = _context.platos.ToDictionary(p => p.id_plato.ToString(), p => p.precio);
             ViewBag.PreciosCombos = _context.combos.ToDictionary(c => c.id_combo.ToString(), c => c.precio);
+            ViewBag.PreciosBebidas = _context.bebidas.ToDictionary(b => b.id_bebida.ToString(), b => b.precio);
 
             return View(promociones);
         }
+
 
         public async Task<IActionResult> Delete(int? id)
         {
@@ -158,9 +171,12 @@ namespace El_Tringulito.Controllers
                 ? _context.combos.FirstOrDefault(c => c.id_combo == promo.id_combo)?.nombre
                 : null;
 
+            ViewBag.NombreBebida = promo.id_bebida.HasValue
+                ? _context.bebidas.FirstOrDefault(b => b.id_bebida == promo.id_bebida)?.nombre
+                : null;
+
             return View(promo);
         }
-
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -174,5 +190,6 @@ namespace El_Tringulito.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+
     }
 }

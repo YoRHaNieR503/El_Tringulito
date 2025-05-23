@@ -184,6 +184,7 @@ namespace El_Tringulito.Controllers
                 else if (producto.tipo == "bebidas") orden.id_bebida = producto.id;
 
 
+
                 _context.ordenes.Add(orden);
             }
 
@@ -228,6 +229,7 @@ namespace El_Tringulito.Controllers
                 else if (producto.tipo == "promociones") orden.id_promocion = producto.id;
                 else if (producto.tipo == "combos") orden.id_combo = producto.id;
                 else if (producto.tipo == "bebidas") orden.id_bebida = producto.id;
+
 
                 _context.ordenes.Add(orden);
             }

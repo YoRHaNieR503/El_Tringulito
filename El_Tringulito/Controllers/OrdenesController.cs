@@ -27,13 +27,30 @@ namespace El_Tringulito.Controllers
             return View(ordenes);
         }
 
-        public IActionResult CreateParaLlevar() => View();
+        public IActionResult CreateParaLlevar()
+        {
+            ViewBag.id_bebida = new SelectList(_context.bebidas, "id_bebida", "nombre");
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateParaLlevar(
-            [Bind("id_orden,id_plato,id_promocion,id_combo,nombre_cliente,fecha,estado,comentario,total")] Ordenes orden)
+            [Bind("id_orden,id_mesa,id_plato,id_promocion,id_bebida,id_combo,nombre_cliente,fecha,estado,comentario,total")]
+            Ordenes orden)
         {
+            if (orden.id_bebida == 0)
+                orden.id_bebida = null;
+
+            if (orden.id_bebida.HasValue)
+            {
+                var existe = await _context.bebidas.AnyAsync(b => b.id_bebida == orden.id_bebida.Value);
+                if (!existe)
+                {
+                    ModelState.AddModelError("id_bebida", "La bebida seleccionada no existe.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 orden.id_mesa = null;
@@ -41,23 +58,46 @@ namespace El_Tringulito.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewBag.id_bebida = new SelectList(_context.bebidas, "id_bebida", "nombre", orden.id_bebida);
             return View(orden);
         }
 
-        public IActionResult Create() => View();
+        public IActionResult Create()
+        {
+            ViewBag.id_bebida = new SelectList(_context.bebidas, "id_bebida", "nombre");
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("id_orden,id_mesa,id_plato,id_promocion,id_combo,nombre_cliente,fecha,estado,comentario,total")] Ordenes ordenes)
+            [Bind("id_orden,id_mesa,id_plato,id_promocion,id_combo,id_bebida,nombre_cliente,fecha,estado,comentario,total")]
+            Ordenes ordenes)
         {
+            if (ordenes.id_mesa == 0)
+                ordenes.id_mesa = null;
+
+            if (ordenes.id_bebida == 0)
+                ordenes.id_bebida = null;
+
+            if (ordenes.id_bebida.HasValue)
+            {
+                var existe = await _context.bebidas.AnyAsync(b => b.id_bebida == ordenes.id_bebida.Value);
+                if (!existe)
+                {
+                    ModelState.AddModelError("id_bebida", "La bebida seleccionada no existe.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
-                if (ordenes.id_mesa == 0) ordenes.id_mesa = null;
                 _context.Add(ordenes);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewBag.id_bebida = new SelectList(_context.bebidas, "id_bebida", "nombre", ordenes.id_bebida);
             return View(ordenes);
         }
 
@@ -72,14 +112,32 @@ namespace El_Tringulito.Controllers
         {
             if (id == null) return NotFound();
             var orden = await _context.ordenes.FindAsync(id);
-            return orden == null ? NotFound() : View(orden);
+            if (orden == null) return NotFound();
+
+            ViewBag.id_bebida = new SelectList(_context.bebidas, "id_bebida", "nombre", orden.id_bebida);
+            return View(orden);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("id_orden,id_mesa,id_plato,id_promocion,id_combo,id_bebida,nombre_cliente,fecha,estado,comentario,total")] Ordenes ordenes)
+        public async Task<IActionResult> Edit(int id,
+            [Bind("id_orden,id_mesa,id_plato,id_promocion,id_combo,id_bebida,nombre_cliente,fecha,estado,comentario,total")]
+            Ordenes ordenes)
         {
             if (id != ordenes.id_orden) return NotFound();
+
+            if (ordenes.id_bebida == 0)
+                ordenes.id_bebida = null;
+
+            if (ordenes.id_bebida.HasValue)
+            {
+                var existe = await _context.bebidas.AnyAsync(b => b.id_bebida == ordenes.id_bebida.Value);
+                if (!existe)
+                {
+                    ModelState.AddModelError("id_bebida", "La bebida seleccionada no existe.");
+                }
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -94,6 +152,8 @@ namespace El_Tringulito.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewBag.id_bebida = new SelectList(_context.bebidas, "id_bebida", "nombre", ordenes.id_bebida);
             return View(ordenes);
         }
 
@@ -219,11 +279,10 @@ namespace El_Tringulito.Controllers
             var bebidas = await _context.bebidas.ToListAsync();
             var resultado = bebidas.Select(b => new
             {
-                id = b.id_bebida,  
+                id = b.id_bebida,
                 nombre = b.nombre,
                 precio = b.precio
             });
-
 
             return Json(resultado);
         }

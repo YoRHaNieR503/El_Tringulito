@@ -37,6 +37,15 @@
                     <span asp-validation-for="id_combo" class="text-danger"></span>
                 </div>
 
+                <!-- Nuevo campo: Bebida -->
+                <div class="mb-3">
+                    <label asp-for="id_bebida" class="form-label">Bebida</label>
+                    <select asp-for="id_bebida" class="form-control bg-secondary text-light border-0" asp-items="ViewBag.id_bebida">
+                        <option value="">Seleccione una bebida</option>
+                    </select>
+                    <span asp-validation-for="id_bebida" class="text-danger"></span>
+                </div>
+
                 <div class="mb-3">
                     <label asp-for="nombre_cliente" class="form-label"></label>
                     <input asp-for="nombre_cliente" class="form-control bg-secondary text-light border-0" />

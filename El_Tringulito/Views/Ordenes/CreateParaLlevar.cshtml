@@ -75,7 +75,7 @@
                     <form asp-action="CreateParaLlevar">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                        <div class="row mb-3">Add-Migration AllowNullForIdMesa
+                        <div class="row mb-3">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label asp-for="nombre_cliente" class="form-label">Nombre del Cliente</label>
@@ -112,6 +112,19 @@
                                     <label asp-for="id_combo" class="form-label">ID Combo</label>
                                     <input asp-for="id_combo" class="form-control" placeholder="Opcional" />
                                     <span asp-validation-for="id_combo" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bebida -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="id_bebida" class="form-label">Bebida</label>
+                                    <select asp-for="id_bebida" class="form-control" asp-items="ViewBag.id_bebida">
+                                        <option value="">Seleccione una bebida</option>
+                                    </select>
+                                    <span asp-validation-for="id_bebida" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>

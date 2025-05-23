@@ -50,31 +50,37 @@ namespace El_Tringulito.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Promociones promociones, int descuento)
+        public async Task<IActionResult> Create(Promociones promociones)
         {
-            if (ModelState.IsValid)
+            // Validar que al menos tenga plato o combo
+            if (!promociones.id_plato.HasValue && !promociones.id_combo.HasValue)
             {
-                decimal totalBase = 0;
-
-                if (promociones.id_plato.HasValue)
-                    totalBase += _context.platos.FirstOrDefault(p => p.id_plato == promociones.id_plato)?.precio ?? 0;
-
-                if (promociones.id_combo.HasValue)
-                    totalBase += _context.combos.FirstOrDefault(c => c.id_combo == promociones.id_combo)?.precio ?? 0;
-
-                promociones.precio = totalBase - (totalBase * descuento / 100M);
-
-                _context.Add(promociones);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError("", "Debe seleccionar al menos un plato o un combo");
             }
 
-            ViewBag.Platos = new SelectList(_context.platos, "id_plato", "nombre", promociones.id_plato);
-            ViewBag.Combos = new SelectList(_context.combos, "id_combo", "nombre", promociones.id_combo);
-            ViewBag.PreciosPlatos = _context.platos.ToDictionary(p => p.id_plato.ToString(), p => p.precio);
-            ViewBag.PreciosCombos = _context.combos.ToDictionary(c => c.id_combo.ToString(), c => c.precio);
+            // Verifica errores de validación
+            if (!ModelState.IsValid)
+            {
+                // Imprime errores en la consola (para debug)
+                foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    Console.WriteLine(error.ErrorMessage);
+                }
 
-            return View(promociones);
+                ViewBag.Platos = new SelectList(_context.platos, "id_plato", "nombre", promociones.id_plato);
+                ViewBag.Combos = new SelectList(_context.combos, "id_combo", "nombre", promociones.id_combo);
+                ViewBag.PreciosPlatos = _context.platos.ToDictionary(p => p.id_plato.ToString(), p => p.precio);
+                ViewBag.PreciosCombos = _context.combos.ToDictionary(c => c.id_combo.ToString(), c => c.precio);
+
+                return View(promociones);
+            }
+
+            // Asigna el estado por defecto (por si acaso)
+            promociones.estado = "activa";
+
+            _context.Add(promociones);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(int? id)

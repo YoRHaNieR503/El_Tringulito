@@ -6,6 +6,7 @@
     bool tieneOrden = ViewBag.EstadoGeneral != "Sin Orden";
     bool esParaLlevar = ViewBag.EsParaLlevar ?? false;
     string nombreEntidad = esParaLlevar ? "Para Llevar" : Model.nombre;
+    var codigoOrden = ViewBag.CodigoOrden;
 }
 
 <style>
@@ -25,19 +26,10 @@
         border-color: #A259FF;
     }
 
-        .btn-primary:hover {
-            background-color: #913FEF;
-        }
-
     .btn-success {
         background-color: #FFD700;
         color: #000;
     }
-
-        .btn-success:hover {
-            background-color: #FFC107;
-            color: #000;
-        }
 
     .btn-danger {
         background-color: #FF4C4C;
@@ -82,7 +74,8 @@
                 @{
                     var estado = ViewBag.EstadoGeneral.ToString();
                     var claseBadge = estado == "Pendiente" ? "badge-pendiente" :
-                    estado == "En Proceso" ? "badge-enproceso" : "badge-entregada";
+                    estado == "En Proceso" ? "badge-enproceso" :
+                    "badge-entregada";
                 }
                 <span class="badge @claseBadge fs-6">@estado</span>
 
@@ -94,10 +87,24 @@
                             <button type="submit" class="btn btn-danger">Cancelar Orden</button>
                         </form>
                     }
+                    @if (puedeCancelar && esParaLlevar)
+                    {
+                        <form asp-action="CancelarOrdenParaLlevar" method="post" onsubmit="return confirm('¿Cancelar esta orden?');">
+                            <input type="hidden" name="id" value="@codigoOrden" />
+                            <button type="submit" class="btn btn-danger">Cancelar Orden</button>
+                        </form>
+                    }
                     @if (ViewBag.PuedeFinalizar && !esParaLlevar)
                     {
                         <form asp-action="FinalizarOrden" method="post" class="d-inline" onsubmit="return confirm('¿Finalizar esta orden?');">
                             <input type="hidden" name="id_mesa" value="@Model.id_mesa" />
+                            <button type="submit" class="btn btn-primary">Finalizar Orden</button>
+                        </form>
+                    }
+                    @if (ViewBag.PuedeFinalizar && esParaLlevar)
+                    {
+                        <form asp-action="FinalizarOrdenParaLlevar" method="post" class="d-inline" onsubmit="return confirm('¿Finalizar esta orden?');">
+                            <input type="hidden" name="codigo_orden" value="@codigoOrden" />
                             <button type="submit" class="btn btn-primary">Finalizar Orden</button>
                         </form>
                     }

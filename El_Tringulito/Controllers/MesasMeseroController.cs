@@ -90,12 +90,6 @@ namespace El_Tringulito.Controllers
 
             var puedeFinalizar = ordenesActivas.Any() && ordenesActivas.All(o => o.Orden.estado == "Entregada");
 
-            var ordenesAgrupadas = ordenesActivas
-        .GroupBy(o => o.Orden.codigo_orden.ToString()) // Convertir a string aquí
-        .ToList();
-
-            ViewBag.OrdenesAgrupadas = ordenesAgrupadas;
-
             ViewBag.OrdenesActivas = ordenesActivas;
             ViewBag.TotalOrdenes = ordenesActivas.Sum(o => o.Orden.total);
             ViewBag.NombreCliente = ordenesActivas.FirstOrDefault()?.Orden.nombre_cliente ?? "";
@@ -140,8 +134,6 @@ namespace El_Tringulito.Controllers
             ViewBag.EstadoGeneral = estadoGeneral;
             ViewBag.PuedeFinalizar = puedeFinalizar;
             ViewBag.EsParaLlevar = true;
-            ViewBag.CodigoOrden = id;
-
 
             var ordenFake = new Mesas { id_mesa = 0, nombre = "Para Llevar" };
             return View("VerOrden", ordenFake);
@@ -236,10 +228,8 @@ namespace El_Tringulito.Controllers
 
         public async Task<IActionResult> GetPromociones()
         {
-            ActualizarEstadosPromociones();
-
             var promociones = await _context.promociones
-                .Where(p => p.estado == "activa")
+                .Where(p => p.fecha_inicio <= DateTime.Now && p.fecha_fin >= DateTime.Now)
                 .ToListAsync();
 
             var promos = promociones.Select(p =>
@@ -258,7 +248,6 @@ namespace El_Tringulito.Controllers
 
             return Json(promos);
         }
-
 
 
         public async Task<IActionResult> GetCombos()
@@ -331,35 +320,34 @@ namespace El_Tringulito.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> ActualizarOrden(int id_mesa, string nombre_cliente, decimal total,
-     List<ProductoSeleccionado> productos, Guid? codigoOrden)
+        public async Task<IActionResult> ActualizarOrden(int id_mesa, string nombre_cliente, decimal total, [FromForm] List<ProductoSeleccionado> productos)
         {
-            if (!ModelState.IsValid || productos == null || !productos.Any())
-                return BadRequest("Datos inválidos o productos vacíos.");
+            if (productos == null || !productos.Any())
+            {
+                TempData["ErrorMessage"] = "Debe agregar al menos un producto.";
+                if (id_mesa == 0)
+                    return RedirectToAction("VerOrdenParaLlevar");
+                else
+                    return RedirectToAction("VerOrden", new { id = id_mesa });
+            }
 
             bool esParaLlevar = id_mesa == 0;
-            Guid codigoExistente;
 
-            // Determinar el código de orden existente
-            if (codigoOrden.HasValue && codigoOrden != Guid.Empty)
-            {
-                // Usar el código proporcionado
-                codigoExistente = codigoOrden.Value;
-            }
-            else
-            {
-                // Buscar el código de orden existente para esta mesa o para llevar
-                var ordenExistente = _context.ordenes
-                    .Where(o => esParaLlevar
-                        ? o.para_llevar && o.nombre_cliente == nombre_cliente && o.estado != "Finalizada"
-                        : o.id_mesa == id_mesa && o.estado != "Finalizada")
+            Guid? codigoExistente = esParaLlevar
+                ? _context.ordenes
+                    .Where(o => o.para_llevar && o.nombre_cliente == nombre_cliente && o.estado != "Finalizada")
                     .OrderByDescending(o => o.fecha)
+                    .Select(o => o.codigo_orden)
+                    .FirstOrDefault()
+                : _context.ordenes
+                    .Where(o => o.id_mesa == id_mesa && o.estado != "Finalizada")
+                    .OrderByDescending(o => o.fecha)
+                    .Select(o => o.codigo_orden)
                     .FirstOrDefault();
 
-                codigoExistente = ordenExistente?.codigo_orden ?? Guid.NewGuid();
-            }
+            if (codigoExistente == null || codigoExistente == Guid.Empty)
+                codigoExistente = Guid.NewGuid();
 
-            // Crear nuevas órdenes con el mismo código
             foreach (var producto in productos)
             {
                 var precio = await ObtenerPrecioProducto(producto);
@@ -372,7 +360,7 @@ namespace El_Tringulito.Controllers
                     estado = "Pendiente",
                     total = precio,
                     para_llevar = esParaLlevar || producto.paraLlevar,
-                    codigo_orden = codigoExistente
+                    codigo_orden = codigoExistente.Value
                 };
 
                 if (producto.tipo == "platos") nuevaOrden.id_plato = producto.id;
@@ -385,154 +373,22 @@ namespace El_Tringulito.Controllers
             await _context.SaveChangesAsync();
             await _hubContext.Clients.All.SendAsync("NuevaOrdenAgregada", id_mesa);
 
-            // Actualizar estado de la mesa si no es para llevar
             if (!esParaLlevar)
             {
-                var mesa = await _context.mesas.FindAsync(id_mesa);
-                if (mesa != null && mesa.estado != "Ocupada")
+                var mesa = _context.mesas.FirstOrDefault(m => m.id_mesa == id_mesa);
+                if (mesa != null)
                 {
                     mesa.estado = "Ocupada";
                     await _context.SaveChangesAsync();
                 }
+
                 return RedirectToAction("VerOrden", new { id = id_mesa });
             }
-
-            return RedirectToAction("VerOrdenParaLlevar", new { id = codigoExistente });
+            else
+            {
+                return RedirectToAction("VerOrdenParaLlevar", new { id = codigoExistente.Value });
+            }
         }
-
-
-
-
-        [HttpPost]
-        public async Task<IActionResult> CancelarOrden(int id_mesa)
-        {
-            var ordenes = _context.ordenes
-                .Where(o => o.id_mesa == id_mesa && o.estado == "Pendiente")
-                .ToList();
-
-            if (!ordenes.Any())
-            {
-                TempData["ErrorMessage"] = "No se puede cancelar la orden. No hay productos en estado 'Pendiente'.";
-                return RedirectToAction("VerOrden", new { id = id_mesa });
-            }
-
-            _context.ordenes.RemoveRange(ordenes);
-            await _context.SaveChangesAsync();
-
-            var mesa = await _context.mesas.FindAsync(id_mesa);
-            if (mesa != null)
-            {
-                mesa.estado = "Libre";
-                await _context.SaveChangesAsync();
-            }
-
-            TempData["SuccessMessage"] = "Orden cancelada exitosamente.";
-            return RedirectToAction("VerOrden", new { id = id_mesa });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CancelarOrdenParaLlevar(Guid id)
-        {
-            var ordenes = _context.ordenes
-                .Where(o => o.codigo_orden == id && o.estado == "Pendiente" && o.para_llevar)
-                .ToList();
-
-            if (!ordenes.Any())
-            {
-                TempData["ErrorMessage"] = "No se puede cancelar la orden. No hay productos pendientes o ya está en proceso.";
-                return RedirectToAction("VerOrdenParaLlevar", new { id = id });
-            }
-
-            _context.ordenes.RemoveRange(ordenes);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Orden para llevar cancelada exitosamente.";
-            return RedirectToAction("Index");
-        }
-
-
-
-        [HttpPost]
-        public async Task<IActionResult> FinalizarOrden(int id_mesa)
-        {
-            var mesa = await _context.mesas.FirstOrDefaultAsync(m => m.id_mesa == id_mesa);
-            if (mesa == null)
-            {
-                TempData["ErrorMessage"] = "Mesa no encontrada.";
-                return RedirectToAction("Index");
-            }
-
-            // Obtener todas las órdenes no finalizadas de esa mesa
-            var ordenes = await _context.ordenes
-                .Where(o => o.id_mesa == id_mesa && o.estado != "Finalizada")
-                .ToListAsync();
-
-            if (!ordenes.Any())
-            {
-                TempData["ErrorMessage"] = "No hay órdenes activas para finalizar.";
-                return RedirectToAction("VerOrden", new { id = id_mesa });
-            }
-
-            // Validar que todas estén en estado "Entregada"
-            if (ordenes.Any(o => o.estado != "Entregada"))
-            {
-                TempData["ErrorMessage"] = "Solo se puede finalizar la orden si todos los productos han sido entregados.";
-                return RedirectToAction("VerOrden", new { id = id_mesa });
-            }
-
-            // Cambiar estado a "Finalizada"
-            foreach (var orden in ordenes)
-            {
-                orden.estado = "Finalizada";
-            }
-
-            // Liberar la mesa
-            mesa.estado = "Libre";
-
-            await _context.SaveChangesAsync();
-
-
-            return RedirectToAction("Index");
-        }
-
-
-
-        [HttpPost]
-        public async Task<IActionResult> FinalizarOrdenParaLlevar(Guid codigo_orden)
-        {
-            // Obtener todas las órdenes para llevar con ese código
-            var ordenes = await _context.ordenes
-                .Where(o => o.codigo_orden == codigo_orden && o.para_llevar && o.estado != "Finalizada")
-                .ToListAsync();
-
-            if (!ordenes.Any())
-            {
-                TempData["ErrorMessage"] = "No hay órdenes activas para finalizar.";
-                return RedirectToAction("Index");
-            }
-
-            // Verificar que todas estén entregadas
-            if (ordenes.Any(o => o.estado != "Entregada"))
-            {
-                TempData["ErrorMessage"] = "Solo se puede finalizar si todos los productos han sido entregados.";
-                return RedirectToAction("VerOrdenParaLlevar", new { id = codigo_orden });
-            }
-
-            // Cambiar estado a Finalizada
-            foreach (var orden in ordenes)
-            {
-                orden.estado = "Finalizada";
-            }
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("Index");
-        }
-
-
-
-
-
 
 
 
@@ -547,33 +403,6 @@ namespace El_Tringulito.Controllers
 
             return View(); // Vista: Views/MesasMesero/ParaLlevar.cshtml
         }
-
-
-
-
-
-        private void ActualizarEstadosPromociones()
-        {
-            var hoy = DateTime.Now;
-            var promociones = _context.promociones.ToList();
-
-            foreach (var promo in promociones)
-            {
-                if (promo.fecha_fin.HasValue && promo.fecha_fin.Value < hoy)
-                {
-                    promo.estado = "vencida";
-                }
-                else
-                {
-                    promo.estado = "activa";
-                }
-            }
-
-            _context.SaveChanges();
-        }
-
-
-
 
 
 

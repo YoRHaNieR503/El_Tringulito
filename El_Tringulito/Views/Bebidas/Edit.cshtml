@@ -22,7 +22,8 @@
 
                 <div class="mb-3">
                     <label asp-for="precio" class="form-label"></label>
-                    <input asp-for="precio" class="form-control bg-secondary text-light border-0" />
+                    <input asp-for="precio" type="number" step="0.01" min="0" class="form-control bg-secondary text-light border-0" />
+
                     <span asp-validation-for="precio" class="text-danger"></span>
                 </div>
 

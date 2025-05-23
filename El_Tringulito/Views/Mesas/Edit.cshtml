@@ -23,9 +23,13 @@
 
                 <div class="mb-3">
                     <label asp-for="estado" class="form-label"></label>
-                    <input asp-for="estado" class="form-control bg-secondary text-light border-0" />
+                    <select asp-for="estado" class="form-select bg-secondary text-light border-0">
+                        <option value="Libre">Libre</option>
+                        <option value="Ocupado">Ocupado</option>
+                    </select>
                     <span asp-validation-for="estado" class="text-danger"></span>
                 </div>
+
 
                 <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar</button>
                 <a asp-action="Index" class="btn btn-outline-light ms-2">Cancelar</a>

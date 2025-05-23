@@ -3,6 +3,7 @@
     ViewData["Title"] = "Promociones";
     var platos = ViewBag.Platos as Dictionary<int, El_Tringulito.Models.Platos>;
     var combos = ViewBag.Combos as Dictionary<int, El_Tringulito.Models.combos>;
+    var bebidas = ViewBag.Bebidas as Dictionary<int, string>;
 }
 
 <div class="container mt-5">
@@ -17,6 +18,7 @@
             <table class="table table-hover table-bordered text-white">
                 <thead class="table-dark">
                     <tr>
+                        <th>Bebida</th>
                         <th>Plato</th>
                         <th>Combo</th>
                         <th>Desde</th>
@@ -29,6 +31,9 @@
                     @foreach (var promo in Model)
                     {
                         <tr>
+                            <td>@(promo.id_bebida.HasValue && bebidas.ContainsKey(promo.id_bebida.Value) ? bebidas[promo.id_bebida.Value] : "-")</td>
+
+
                             <td>@(promo.id_plato.HasValue && platos.ContainsKey(promo.id_plato.Value) ? platos[promo.id_plato.Value].nombre : "-")</td>
                             <td>@(promo.id_combo.HasValue && combos.ContainsKey(promo.id_combo.Value) ? combos[promo.id_combo.Value].nombre : "-")</td>
                             <td>

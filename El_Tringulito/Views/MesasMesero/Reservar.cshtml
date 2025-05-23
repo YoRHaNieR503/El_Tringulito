@@ -197,8 +197,8 @@
 
         function mostrarProductosEnModal(data, titulo) {
             var html = `<h3>${titulo}</h3><div class="row">`;
-            data.forEach(function (producto) {
-                let id = p.id_plato || p.id_promocion || p.id_combo || p.id_bebida;
+        data.forEach(function (producto) {
+            let id = producto.id || producto.id_plato || producto.id_promocion || producto.id_combo || producto.id_bebida;
 
                 html += `
                             <div class="col-md-4 mb-3">

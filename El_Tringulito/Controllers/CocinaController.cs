@@ -201,9 +201,7 @@ namespace El_Tringulito.Controllers
             await _context.SaveChangesAsync();
             await _hubContext.Clients.All.SendAsync("OrdenTomada", mesaId);
 
-            TempData["SuccessMessage"] = mesaId == -1
-                ? "Orden para llevar tomada con éxito"
-                : $"Orden de la mesa {mesaId} tomada con éxito";
+
             return RedirectToAction("Index");
         }
 
@@ -227,38 +225,76 @@ namespace El_Tringulito.Controllers
             await _context.SaveChangesAsync();
             await _hubContext.Clients.All.SendAsync("OrdenEntregada", mesaId);
 
-            TempData["SuccessMessage"] = mesaId == -1
-                ? "Orden para llevar marcada como entregada"
-                : $"Orden de la mesa {mesaId} marcada como entregada";
             return RedirectToAction("Index");
         }
 
         private async Task<string> ObtenerNombreProducto(Ordenes orden)
         {
             if (orden.id_plato != null)
-                return (await _context.platos.FindAsync(orden.id_plato))?.nombre ?? "Plato no encontrado";
+            {
+                var plato = await _context.platos.FindAsync(orden.id_plato);
+                return plato != null ? plato.nombre : "Plato no encontrado";
+            }
 
             if (orden.id_promocion != null)
             {
                 var promo = await _context.promociones.FindAsync(orden.id_promocion);
-                if (promo?.id_plato != null)
-                    return (await _context.platos.FindAsync(promo.id_plato))?.nombre + " (Promoción)";
-                if (promo?.id_combo != null)
-                    return (await _context.combos.FindAsync(promo.id_combo))?.nombre + " (Promoción)";
-                return "Promoción sin producto asociado";
+                if (promo == null)
+                    return "Promoción no encontrada";
+
+                string titulo = "Promoción";
+                List<string> detalles = new();
+
+                if (promo.id_plato != null)
+                {
+                    var plato = await _context.platos.FindAsync(promo.id_plato);
+                    if (plato != null)
+                        detalles.Add($"🍽️ <strong>Plato:</strong> {plato.nombre}");
+                }
+
+                if (promo.id_combo != null)
+                {
+                    var combo = await _context.combos.FindAsync(promo.id_combo);
+                    if (combo != null)
+                        detalles.Add($"🎁 <strong>Combo:</strong> {combo.nombre}");
+                }
+
+                if (promo.id_bebida != null)
+                {
+                    var bebida = await _context.bebidas.FindAsync(promo.id_bebida);
+                    if (bebida != null)
+                        detalles.Add($"🥤 <strong>Bebida:</strong> {bebida.nombre}");
+                }
+
+                if (detalles.Any())
+                    return $"{titulo}<br><div style='margin-left:10px;'>{string.Join("<br>", detalles)}</div>";
+                else
+                    return "Promoción sin detalles";
             }
 
             if (orden.id_combo != null)
-                return (await _context.combos.FindAsync(orden.id_combo))?.nombre ?? "Combo no encontrado";
+            {
+                var combo = await _context.combos.FindAsync(orden.id_combo);
+                return combo != null ? combo.nombre : "Combo no encontrado";
+            }
+
+            if (orden.id_bebida != null)
+            {
+                var bebida = await _context.bebidas.FindAsync(orden.id_bebida);
+                return bebida != null ? bebida.nombre : "Bebida no encontrada";
+            }
 
             return "Producto no identificado";
         }
+
+
 
         private string ObtenerTipoProducto(Ordenes orden)
         {
             if (orden.id_plato != null) return "Plato";
             if (orden.id_promocion != null) return "Promoción";
             if (orden.id_combo != null) return "Combo";
+            if (orden.id_bebida != null) return "Bebida";
             return "Desconocido";
         }
     }

@@ -8,69 +8,161 @@
     string nombreEntidad = esParaLlevar ? "Para Llevar" : Model.nombre;
 }
 
-<h1 class="text-center my-4">@nombreEntidad - @(tieneOrden ? $"Orden {ViewBag.EstadoGeneral}" : "Sin Orden")</h1>
-
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
-}
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
-}
-
-<form asp-action="ActualizarOrden" method="post" onsubmit="agregarCamposOcultos()">
-    @if (!esParaLlevar)
-    {
-        <input type="hidden" asp-for="id_mesa" />
+<style>
+    body {
+        background-color: #1E1E2F;
+        color: #FFFFFF;
+        font-family: 'Segoe UI', sans-serif;
     }
 
-    <div class="mb-3">
-        <label class="form-label">Nombre del Cliente</label>
-        <input type="text" class="form-control" name="nombre_cliente" value="@ViewBag.NombreCliente" required @(ViewBag.EstadoGeneral == "En Proceso" ? "readonly" : "") />
-    </div>
+    .card {
+        background-color: #2C2C3A;
+        border-radius: 12px;
+    }
 
-    <div class="mb-3">
-        <label class="form-label">Agregar Producto</label>
-        <div class="d-flex flex-wrap gap-2">
-            <button type="button" class="btn btn-primary" onclick="cargarPlatos()">Platos</button>
-            <button type="button" class="btn btn-success" onclick="cargarPromociones()">Promociones</button>
-            <button type="button" class="btn btn-warning" onclick="cargarCombos()">Combos</button>
-            <a asp-action="Index" class="btn btn-secondary ms-auto">Volver</a>
-        </div>
-    </div>
+    .btn-primary {
+        background-color: #A259FF;
+        border-color: #A259FF;
+    }
 
-    <div id="productosSeleccionados" class="mb-3">
-        <ul class="list-group" id="listaSeleccionados">
-            @if (tieneOrden)
-            {
-                foreach (var item in ViewBag.OrdenesActivas)
-                {
-                    <li class="list-group-item bg-dark text-white mb-1">
-                        <strong>@item.NombreProducto</strong> - $@item.Orden.total?.ToString("F2")
-                        <span class="badge bg-secondary">@item.TipoProducto</span>
-                        <span class="badge bg-info">@item.Orden.estado</span>
-                        @if (item.Orden.para_llevar)
-                        {
-                            <span class="badge bg-info text-dark">Para llevar</span>
-                        }
-                        @if (!string.IsNullOrWhiteSpace(item.Orden.comentario))
-                        {
-                            <div class="mt-2"><small><strong>Comentario:</strong> @item.Orden.comentario</small></div>
-                        }
-                    </li>
+        .btn-primary:hover {
+            background-color: #913FEF;
+        }
+
+    .btn-success {
+        background-color: #FFD700;
+        color: #000;
+    }
+
+        .btn-success:hover {
+            background-color: #FFC107;
+            color: #000;
+        }
+
+    .btn-danger {
+        background-color: #FF4C4C;
+        border-color: #FF4C4C;
+    }
+
+    .badge-pendiente {
+        background-color: #FFD700;
+        color: #000;
+    }
+
+    .badge-enproceso {
+        background-color: #007BFF;
+    }
+
+    .badge-entregada {
+        background-color: #28A745;
+    }
+
+    .badge-para-llevar {
+        background-color: #17a2b8;
+        color: white;
+    }
+</style>
+
+<div class="container py-5">
+    <h1 class="text-center my-4">@nombreEntidad - @(tieneOrden ? $"Orden {ViewBag.EstadoGeneral}" : "Sin Orden")</h1>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="card p-4 shadow mb-4">
+        @if (tieneOrden)
+        {
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                @{
+                    var estado = ViewBag.EstadoGeneral.ToString();
+                    var claseBadge = estado == "Pendiente" ? "badge-pendiente" :
+                    estado == "En Proceso" ? "badge-enproceso" : "badge-entregada";
                 }
+                <span class="badge @claseBadge fs-6">@estado</span>
+
+                <div class="d-flex gap-2">
+                    @if (puedeCancelar && !esParaLlevar)
+                    {
+                        <form asp-action="CancelarOrden" method="post" onsubmit="return confirm('¿Cancelar esta orden?');">
+                            <input type="hidden" name="id_mesa" value="@Model.id_mesa" />
+                            <button type="submit" class="btn btn-danger">Cancelar Orden</button>
+                        </form>
+                    }
+                    @if (ViewBag.PuedeFinalizar && !esParaLlevar)
+                    {
+                        <form asp-action="FinalizarOrden" method="post" class="d-inline" onsubmit="return confirm('¿Finalizar esta orden?');">
+                            <input type="hidden" name="id_mesa" value="@Model.id_mesa" />
+                            <button type="submit" class="btn btn-primary">Finalizar Orden</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+
+        <form asp-action="ActualizarOrden" method="post" onsubmit="agregarCamposOcultos()">
+            @if (!esParaLlevar)
+            {
+                <input type="hidden" asp-for="id_mesa" />
             }
-        </ul>
-    </div>
 
-    <div class="mb-3">
-        <label>Total</label>
-        <input type="text" id="total" name="total" class="form-control" value="@(ViewBag.TotalOrdenes?.ToString("F2") ?? "0.00")" readonly />
-    </div>
+            <div class="mb-3">
+                <label>Nombre del Cliente</label>
+                <input type="text" name="nombre_cliente" class="form-control"
+                       value="@ViewBag.NombreCliente" required @(ViewBag.EstadoGeneral == "En Proceso" ? "readonly" : "") />
+            </div>
 
-    <button type="submit" class="btn btn-success w-100">@(tieneOrden ? "Actualizar Orden" : "Crear Orden")</button>
-</form>
+            <div class="mb-3">
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-primary" onclick="cargarPlatos()">Platos</button>
+                    <button type="button" class="btn btn-success" onclick="cargarPromociones()">Promociones</button>
+                    <button type="button" class="btn btn-warning" onclick="cargarCombos()">Combos</button>
+                    @if (!esParaLlevar)
+                    {
+                        <button type="button" class="btn btn-info" onclick="abrirModalParaLlevar()">Agregar Para Llevar</button>
+                    }
+                    <a asp-action="Index" class="btn btn-secondary ms-auto">Volver</a>
+                </div>
+            </div>
+
+            <div id="productosSeleccionados" class="mb-3">
+                <ul class="list-group" id="listaSeleccionados">
+                    @if (tieneOrden)
+                    {
+                        foreach (var item in ViewBag.OrdenesActivas)
+                        {
+                            <li class="list-group-item bg-dark text-white mb-1">
+                                <strong>@item.NombreProducto</strong> - $@item.Orden.total?.ToString("F2")
+                                <span class="badge bg-secondary">@item.TipoProducto</span>
+                                <span class="badge bg-info">@item.Orden.estado</span>
+                                @if (item.Orden.para_llevar)
+                                {
+                                    <span class="badge bg-info text-dark">Para llevar</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(item.Orden.comentario))
+                                {
+                                    <div class="mt-2"><small><strong>Comentario:</strong> @item.Orden.comentario</small></div>
+                                }
+                            </li>
+                        }
+                    }
+                </ul>
+            </div>
+
+            <div class="mb-3">
+                <label>Total</label>
+                <input type="text" id="total" name="total" class="form-control" value="@(ViewBag.TotalOrdenes?.ToString("F2") ?? "0.00")" readonly />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">@(tieneOrden ? "Actualizar Orden" : "Crear Orden")</button>
+        </form>
+    </div>
+</div>
 
 <!-- Modal de Productos -->
 <div class="modal fade" id="productosModal" tabindex="-1">
@@ -85,21 +177,39 @@
     </div>
 </div>
 
+<!-- Modal Para Llevar -->
+<div class="modal fade" id="modalParaLlevar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header">
+                <h5 class="modal-title">Agregar Producto Para Llevar</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <select id="tipoProductoLlevar" class="form-select mb-3">
+                    <option value="platos">Plato</option>
+                    <option value="promociones">Promoción</option>
+                    <option value="combos">Combo</option>
+                </select>
+                <div id="contenidoParaLlevar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let productosSeleccionados = [];
         let total = parseFloat("@(ViewBag.TotalOrdenes ?? 0)");
 
-        function cargarPlatos() {
-            $.get("/MesasMesero/GetPlatos", data => mostrarModal(data, "platos"));
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                       .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
-        function cargarPromociones() {
-            $.get("/MesasMesero/GetPromociones", data => mostrarModal(data, "promociones"));
-        }
-        function cargarCombos() {
-            $.get("/MesasMesero/GetCombos", data => mostrarModal(data, "combos"));
-        }
+
+        function cargarPlatos() { $.get("/MesasMesero/GetPlatos", data => mostrarModal(data, "platos")); }
+        function cargarPromociones() { $.get("/MesasMesero/GetPromociones", data => mostrarModal(data, "promociones")); }
+        function cargarCombos() { $.get("/MesasMesero/GetCombos", data => mostrarModal(data, "combos")); }
 
         function mostrarModal(data, tipo) {
             let html = '<div class="row">';
@@ -111,8 +221,7 @@
                             <div class="card-body">
                                 <h5>${p.nombre}</h5>
                                 <p class="text-muted">$${p.precio.toFixed(2)}</p>
-                                <textarea class="form-control form-control-sm mb-2" id="comentario_${id}" placeholder="Comentario opcional"></textarea>
-                                <button class="btn btn-outline-primary w-100" onclick="agregarProducto(${id}, '${tipo}', '${p.nombre}', ${p.precio})">Agregar</button>
+                                <button class="btn btn-outline-primary w-100" onclick="agregarProducto(${id}, '${tipo}', '${p.nombre}', ${p.precio}, false)">Agregar</button>
                             </div>
                         </div>
                     </div>`;
@@ -122,26 +231,44 @@
             $('#productosModal').modal('show');
         }
 
-        function agregarProducto(id, tipo, nombre, precio) {
-            const comentario = document.getElementById(`comentario_${id}`)?.value || '';
-            productosSeleccionados.push({
-                id: id,
-                tipo: tipo,
-                comentario: comentario,
-                precio: precio,
-                paraLlevar: false
-            });
+        function agregarProducto(id, tipo, nombre, precio, paraLlevar) {
+            const itemId = `nuevo_${Date.now()}`;
+            productosSeleccionados.push({ id, tipo, comentario: '', precio, paraLlevar, itemId });
+
+            let html = `
+                <li class="list-group-item bg-success text-white mb-1" id="${itemId}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>${nombre}</strong> - $${precio.toFixed(2)}
+                            <span class="badge bg-primary">${tipo}</span>
+                            ${paraLlevar ? '<span class="badge bg-info text-dark">Para llevar</span>' : ''}
+                            <textarea class="form-control form-control-sm mt-2" placeholder="Comentario"
+                                onchange="actualizarComentario('${itemId}', this.value)"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger ms-2" onclick="eliminarProducto('${itemId}', ${precio})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </li>`;
+            $("#listaSeleccionados").append(html);
             total += precio;
             $("#total").val(total.toFixed(2));
-
-            $("#listaSeleccionados").append(`
-                <li class="list-group-item bg-success text-white mb-1">
-                    <strong>${nombre}</strong> - $${precio.toFixed(2)}
-                    <span class="badge bg-primary">${tipo}</span>
-                    ${comentario ? `<div class="mt-1"><small><strong>Comentario:</strong> ${comentario}</small></div>` : ''}
-                </li>
-            `);
             $('#productosModal').modal('hide');
+        }
+
+        function actualizarComentario(itemId, comentario) {
+            const prod = productosSeleccionados.find(p => p.itemId === itemId);
+            if (prod) prod.comentario = comentario;
+        }
+
+        function eliminarProducto(itemId, precio) {
+            $(`#${itemId}`).remove();
+            const index = productosSeleccionados.findIndex(p => p.itemId === itemId);
+            if (index !== -1) {
+                productosSeleccionados.splice(index, 1);
+                total -= precio;
+                $("#total").val(total.toFixed(2));
+            }
         }
 
         function agregarCamposOcultos() {
@@ -149,10 +276,38 @@
                 $("#productosSeleccionados").append(`
                     <input type="hidden" name="productos[${i}].id" value="${p.id}" />
                     <input type="hidden" name="productos[${i}].tipo" value="${p.tipo}" />
-                    <input type="hidden" name="productos[${i}].comentario" value="${p.comentario}" />
+                    <input type="hidden" name="productos[${i}].comentario" value="${escapeHtml(p.comentario)}" />
                     <input type="hidden" name="productos[${i}].precio" value="${p.precio}" />
                     <input type="hidden" name="productos[${i}].paraLlevar" value="${p.paraLlevar}" />
                 `);
+            });
+        }
+
+        function abrirModalParaLlevar() {
+            cargarProductosParaLlevar($('#tipoProductoLlevar').val());
+            $('#modalParaLlevar').modal('show');
+        }
+
+        $('#tipoProductoLlevar').change(function () {
+            cargarProductosParaLlevar(this.value);
+        });
+
+        function cargarProductosParaLlevar(tipo) {
+            let url = tipo === 'platos' ? '/MesasMesero/GetPlatos' :
+                      tipo === 'promociones' ? '/MesasMesero/GetPromociones' :
+                      '/MesasMesero/GetCombos';
+
+            $.get(url, function (data) {
+                let html = '<div class="list-group">';
+                data.forEach(p => {
+                    let id = p.id_plato || p.id_promocion || p.id_combo;
+                    html += `
+                        <button class="list-group-item list-group-item-action" onclick="agregarProducto(${id}, '${tipo}', '${p.nombre}', ${p.precio}, true)">
+                            ${p.nombre} - $${p.precio.toFixed(2)}
+                        </button>`;
+                });
+                html += '</div>';
+                $('#contenidoParaLlevar').html(html);
             });
         }
     </script>

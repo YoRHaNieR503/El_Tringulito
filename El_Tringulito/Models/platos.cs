@@ -14,4 +14,5 @@ namespace El_Tringulito
 
         public decimal precio { get; set; }
     }
+
 }

@@ -17,13 +17,11 @@ namespace El_Tringulito.Controllers
             _context = context;
         }
 
-        // GET: Usuarios
         public async Task<IActionResult> Index()
         {
             return View(await _context.usuarios.ToListAsync());
         }
 
-        // GET: Usuarios/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -35,13 +33,11 @@ namespace El_Tringulito.Controllers
             return View(usuario);
         }
 
-        // GET: Usuarios/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Usuarios/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,NombreUsuario,Contrasenia,Rol")] Usuario usuario)
@@ -54,6 +50,7 @@ namespace El_Tringulito.Controllers
                     return View(usuario);
                 }
 
+                usuario.Rol = usuario.Rol.ToLower(); // Rol en minúsculas
                 usuario.Contrasenia = PasswordHelper.HashPassword(usuario.Contrasenia);
                 _context.Add(usuario);
                 await _context.SaveChangesAsync();
@@ -62,7 +59,6 @@ namespace El_Tringulito.Controllers
             return View(usuario);
         }
 
-        // GET: Usuarios/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -74,7 +70,6 @@ namespace El_Tringulito.Controllers
             return View(usuario);
         }
 
-        // POST: Usuarios/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,NombreUsuario,Contrasenia,Rol")] Usuario usuario)
@@ -86,7 +81,6 @@ namespace El_Tringulito.Controllers
                 try
                 {
                     var existingUser = await _context.usuarios.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
-
                     if (existingUser == null) return NotFound();
 
                     if (string.IsNullOrEmpty(usuario.Contrasenia))
@@ -104,6 +98,8 @@ namespace El_Tringulito.Controllers
                         usuario.Contrasenia = PasswordHelper.HashPassword(usuario.Contrasenia);
                     }
 
+                    usuario.Rol = usuario.Rol.ToLower(); // Rol en minúsculas
+
                     _context.Update(usuario);
                     await _context.SaveChangesAsync();
                 }
@@ -117,7 +113,6 @@ namespace El_Tringulito.Controllers
             return View(usuario);
         }
 
-        // GET: Usuarios/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -129,7 +124,6 @@ namespace El_Tringulito.Controllers
             return View(usuario);
         }
 
-        // POST: Usuarios/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

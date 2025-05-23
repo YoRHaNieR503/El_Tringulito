@@ -1,43 +1,111 @@
 ﻿@model El_Tringulito.Models.Usuario
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Crear Usuario";
 }
 
-<h1>Create</h1>
+<style>
+    body {
+        background: linear-gradient(to bottom, #000, #d4af37);
+        font-family: 'Segoe UI', sans-serif;
+        color: white;
+    }
 
-<h4>Usuario</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="NombreUsuario" class="control-label"></label>
-                <input asp-for="NombreUsuario" class="form-control" />
-                <span asp-validation-for="NombreUsuario" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Contrasenia" class="control-label"></label>
-                <input asp-for="Contrasenia" class="form-control" />
-                <span asp-validation-for="Contrasenia" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Rol" class="control-label"></label>
-                <input asp-for="Rol" class="form-control" />
-                <span asp-validation-for="Rol" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
+    .card {
+        background-color: #1e1e1e;
+        border: 1px solid #ffc107;
+        border-radius: 12px;
+        padding: 30px;
+        margin: 40px auto;
+        max-width: 600px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
 
-<div>
-    <a asp-action="Index">Back to List</a>
+    h2 {
+        color: #ffc107;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    label {
+        color: #ffc107;
+        font-weight: bold;
+    }
+
+    .form-control {
+        background-color: #2c2c2c;
+        color: white;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+        .form-control:focus {
+            background-color: #1a1a1a;
+            border-color: #f5c542;
+            color: white;
+        }
+
+    .btn-success {
+        background-color: #d4af37;
+        border: none;
+        font-weight: bold;
+        width: 48%;
+    }
+
+        .btn-success:hover {
+            background-color: #f0c94d;
+            color: black;
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+        font-weight: bold;
+        width: 48%;
+    }
+
+    .text-danger {
+        color: #ff6b6b;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+    }
+</style>
+
+<div class="card">
+    <h2><i class="bi bi-person-plus-fill me-2"></i>Crear Usuario</h2>
+
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+        <div class="form-group">
+            <label asp-for="NombreUsuario" class="control-label">Nombre de usuario</label>
+            <input asp-for="NombreUsuario" class="form-control" />
+            <span asp-validation-for="NombreUsuario" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Contrasenia" class="control-label">Contraseña</label>
+            <input asp-for="Contrasenia" class="form-control" />
+            <span asp-validation-for="Contrasenia" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Rol" class="control-label">Rol</label>
+            @Html.DropDownListFor(model => model.Rol, new SelectList(new[] { "Admin", "Cocina", "Mesero" }), "-- Seleccione un rol --", new { @class = "form-control" })
+            <span asp-validation-for="Rol" class="text-danger"></span>
+        </div>
+
+        <div class="form-actions mt-4">
+            <input type="submit" value="Crear" class="btn btn-success" />
+            <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @await Html.PartialAsync("_ValidationScriptsPartial")
 }

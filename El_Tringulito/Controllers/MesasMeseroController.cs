@@ -74,12 +74,19 @@ namespace El_Tringulito.Controllers
                 .Select(o => new
                 {
                     Orden = o,
-                    NombreProducto = o.id_plato != null ? _context.platos.FirstOrDefault(p => p.id_plato == o.id_plato)?.nombre :
-                                      o.id_promocion != null ? GetNombrePromocion(o.id_promocion.Value) :
-                                      o.id_combo != null ? _context.combos.FirstOrDefault(c => c.id_combo == o.id_combo)?.nombre : "",
+                    NombreProducto =
+                                    o.id_plato != null ? _context.platos.FirstOrDefault(p => p.id_plato == o.id_plato)?.nombre ?? "Plato desconocido" :
+                                    o.id_promocion != null ? GetNombrePromocion(o.id_promocion.Value) :
+                                    o.id_combo != null ? _context.combos.FirstOrDefault(c => c.id_combo == o.id_combo)?.nombre ?? "Combo desconocido" :
+                                    o.id_bebida != null ? _context.bebidas.FirstOrDefault(b => b.id_bebida == o.id_bebida)?.nombre ?? "Bebida desconocida" :
+                                    "Producto desconocido",
+
+
+
                     TipoProducto = o.id_plato != null ? "Plato" :
                                  o.id_promocion != null ? "Promoción" :
-                                 o.id_combo != null ? "Combo" : ""
+                                 o.id_combo != null ? "Combo" : 
+                                 o.id_bebida != null ? "Bebida" : ""
                 })
                 .ToList();
 
@@ -113,13 +120,20 @@ namespace El_Tringulito.Controllers
             var ordenesActivas = ordenes.Select(o => new
             {
                 Orden = o,
-                NombreProducto = o.id_plato != null ? _context.platos.FirstOrDefault(p => p.id_plato == o.id_plato)?.nombre :
-                                  o.id_promocion != null ? GetNombrePromocion(o.id_promocion.Value) :
-                                  o.id_combo != null ? _context.combos.FirstOrDefault(c => c.id_combo == o.id_combo)?.nombre : "",
+                NombreProducto =
+                                o.id_plato != null ? _context.platos.FirstOrDefault(p => p.id_plato == o.id_plato)?.nombre ?? "Plato desconocido" :
+                                o.id_promocion != null ? GetNombrePromocion(o.id_promocion.Value) :
+                                o.id_combo != null ? _context.combos.FirstOrDefault(c => c.id_combo == o.id_combo)?.nombre ?? "Combo desconocido" :
+                                o.id_bebida != null ? _context.bebidas.FirstOrDefault(b => b.id_bebida == o.id_bebida)?.nombre ?? "Bebida desconocida" :
+                                "Producto desconocido",
+
                 TipoProducto = o.id_plato != null ? "Plato" :
-                             o.id_promocion != null ? "Promoción" :
-                             o.id_combo != null ? "Combo" : ""
+                 o.id_promocion != null ? "Promoción" :
+                 o.id_combo != null ? "Combo" :
+                 o.id_bebida != null ? "Bebida" : "Desconocido"
             }).ToList();
+
+
 
             var estadoGeneral = ordenesActivas.Any() ?
                 (ordenesActivas.Any(o => o.Orden.estado == "En Proceso") ? "En Proceso" :
@@ -167,6 +181,8 @@ namespace El_Tringulito.Controllers
                 if (producto.tipo == "platos") orden.id_plato = producto.id;
                 else if (producto.tipo == "promociones") orden.id_promocion = producto.id;
                 else if (producto.tipo == "combos") orden.id_combo = producto.id;
+                else if (producto.tipo == "bebidas") orden.id_bebida = producto.id;
+
 
                 _context.ordenes.Add(orden);
             }
@@ -211,6 +227,7 @@ namespace El_Tringulito.Controllers
                 if (producto.tipo == "platos") orden.id_plato = producto.id;
                 else if (producto.tipo == "promociones") orden.id_promocion = producto.id;
                 else if (producto.tipo == "combos") orden.id_combo = producto.id;
+                else if (producto.tipo == "bebidas") orden.id_bebida = producto.id;
 
                 _context.ordenes.Add(orden);
             }
@@ -221,6 +238,23 @@ namespace El_Tringulito.Controllers
             TempData["SuccessMessage"] = "Orden para llevar creada exitosamente";
             return RedirectToAction("Index");
         }
+        public async Task<IActionResult> GetBebidas()
+        {
+       
+            var bebidas = await _context.bebidas.ToListAsync();
+
+            var resultado = bebidas.Select(b => new
+            {
+                id = b.id_bebida,   // <- nombre estándar como el resto
+                nombre = b.nombre,
+                precio = b.precio
+            });
+
+
+            return Json(resultado);
+        }
+
+
 
         public async Task<IActionResult> GetPlatos()
         {
@@ -272,6 +306,9 @@ namespace El_Tringulito.Controllers
                 return await _context.promociones.Where(p => p.id_promocion == producto.id).Select(p => p.precio).FirstOrDefaultAsync() ?? 0;
             else if (producto.tipo == "combos")
                 return await _context.combos.Where(c => c.id_combo == producto.id).Select(c => c.precio).FirstOrDefaultAsync();
+            else if (producto.tipo == "bebidas")
+                return await _context.bebidas.Where(b => b.id_bebida == producto.id).Select(b => b.precio).FirstOrDefaultAsync();
+
 
             return 0;
         }
@@ -374,6 +411,9 @@ namespace El_Tringulito.Controllers
                 if (producto.tipo == "platos") nuevaOrden.id_plato = producto.id;
                 else if (producto.tipo == "promociones") nuevaOrden.id_promocion = producto.id;
                 else if (producto.tipo == "combos") nuevaOrden.id_combo = producto.id;
+                else if (producto.tipo == "bebidas") nuevaOrden.id_bebida = producto.id;
+
+
 
                 _context.ordenes.Add(nuevaOrden);
             }

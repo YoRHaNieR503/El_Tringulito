@@ -30,6 +30,10 @@
                     <button type="button" class="btn btn-primary me-2" onclick="cargarPlatos()">
                         <i class="bi bi-egg-fried"></i> Platos
                     </button>
+                    <button type="button" class="btn btn-outline-info" onclick="cargarBebidas()">
+                        <i class="bi bi-cup-straw"></i> Bebidas
+                    </button>
+
                     <button type="button" class="btn btn-success me-2" onclick="cargarPromociones()">
                         <i class="bi bi-tag"></i> Promociones
                     </button>
@@ -184,11 +188,18 @@
                 mostrarProductosEnModal(data, "Combos");
             });
         }
+        function cargarBebidas() {
+            $.get("/MesasMesero/GetBebidas", function (data) {
+                mostrarProductosEnModal(data, "Bebidas");
+            });
+        }
+
 
         function mostrarProductosEnModal(data, titulo) {
             var html = `<h3>${titulo}</h3><div class="row">`;
             data.forEach(function (producto) {
-                let id = producto.id_plato || producto.id_promocion || producto.id_combo;
+                let id = p.id_plato || p.id_promocion || p.id_combo || p.id_bebida;
+
                 html += `
                             <div class="col-md-4 mb-3">
                                 <div class="card h-100">

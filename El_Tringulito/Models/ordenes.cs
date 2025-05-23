@@ -29,5 +29,7 @@ namespace El_Tringulito.Models
 
         public bool para_llevar { get; set; } = false;
         public Guid? codigo_orden { get; set; }
+        public int? id_bebida { get; set; }
+
     }
 }

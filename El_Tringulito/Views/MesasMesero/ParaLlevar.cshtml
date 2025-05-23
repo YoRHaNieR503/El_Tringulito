@@ -30,6 +30,9 @@
                         <button type="button" class="btn btn-outline-warning" onclick="cargarCombos()">
                             <i class="bi bi-collection-fill"></i> Combos
                         </button>
+                        <button type="button" class="btn btn-outline-info" onclick="cargarBebidas()">
+                            <i class="bi bi-cup-straw"></i> Bebidas
+                        </button>
                     </div>
                 </div>
 
@@ -79,11 +82,18 @@
         function cargarCombos() {
             $.get("/MesasMesero/GetCombos", data => mostrarProductosEnModal(data, "combos"));
         }
+        function cargarBebidas() {
+            $.get("/MesasMesero/GetBebidas", data => mostrarProductosEnModal(data, "bebidas"));
+        }
+        
+
 
         function mostrarProductosEnModal(data, tipo) {
             let html = `<div class="row">`;
             data.forEach(p => {
-                let id = p.id_plato || p.id_promocion || p.id_combo;
+                let id = p.id_plato || p.id_promocion || p.id_combo || p.id_bebida;
+
+
                 html += `
                     <div class="col-md-4 mb-3">
                         <div class="card text-dark h-100">

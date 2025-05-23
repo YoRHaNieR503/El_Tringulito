@@ -129,6 +129,11 @@
                     <button type="button" class="btn btn-primary" onclick="cargarPlatos()">Platos</button>
                     <button type="button" class="btn btn-success" onclick="cargarPromociones()">Promociones</button>
                     <button type="button" class="btn btn-warning" onclick="cargarCombos()">Combos</button>
+                    <button type="button" class="btn btn-outline-info" onclick="cargarBebidas()">
+                        <i class="bi bi-cup-straw"></i> Bebidas
+                    </button>
+
+
                     @if (!esParaLlevar)
                     {
                         <button type="button" class="btn btn-info" onclick="abrirModalParaLlevar()">Agregar Para Llevar</button>
@@ -217,11 +222,14 @@
         function cargarPlatos() { $.get("/MesasMesero/GetPlatos", data => mostrarModal(data, "platos")); }
         function cargarPromociones() { $.get("/MesasMesero/GetPromociones", data => mostrarModal(data, "promociones")); }
         function cargarCombos() { $.get("/MesasMesero/GetCombos", data => mostrarModal(data, "combos")); }
+        function cargarBebidas() { $.get("/Ordenes/GetBebidas", data => mostrarModal(data, "bebidas"));
+}
+
 
         function mostrarModal(data, tipo) {
             let html = '<div class="row">';
             data.forEach(p => {
-                let id = p.id_plato || p.id_promocion || p.id_combo;
+                let id = p.id_plato || p.id_promocion || p.id_combo || p.id_bebida;
                 html += `
                     <div class="col-md-4 mb-3">
                         <div class="card text-dark">
@@ -307,7 +315,7 @@
             $.get(url, function (data) {
                 let html = '<div class="list-group">';
                 data.forEach(p => {
-                    let id = p.id_plato || p.id_promocion || p.id_combo;
+                    let id = p.id_plato || p.id_promocion || p.id_combo || p.id_bebida;
                     html += `
                         <button class="list-group-item list-group-item-action" onclick="agregarProducto(${id}, '${tipo}', '${p.nombre}', ${p.precio}, true)">
                             ${p.nombre} - $${p.precio.toFixed(2)}

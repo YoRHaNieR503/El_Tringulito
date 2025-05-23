@@ -12,6 +12,8 @@ namespace El_Tringulito.Models
         public int? id_plato { get; set; }
 
         public int? id_combo { get; set; }
+        public int? id_bebida { get; set; }
+
 
         public DateTime? fecha_inicio { get; set; }
 

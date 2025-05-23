@@ -230,8 +230,13 @@ namespace El_Tringulito.Controllers
 
         public async Task<IActionResult> GetPromociones()
         {
+            var ahora = DateTime.Now;
+
             var promociones = await _context.promociones
-                .Where(p => p.fecha_inicio <= DateTime.Now && p.fecha_fin >= DateTime.Now)
+                .Where(p =>
+                    (!p.fecha_inicio.HasValue || p.fecha_inicio <= ahora) &&
+                    (!p.fecha_fin.HasValue || p.fecha_fin >= ahora)
+                )
                 .ToListAsync();
 
             var promos = promociones.Select(p =>
@@ -250,6 +255,7 @@ namespace El_Tringulito.Controllers
 
             return Json(promos);
         }
+
 
 
         public async Task<IActionResult> GetCombos()

@@ -20,12 +20,20 @@ namespace El_Tringulito.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var hoy = DateTime.Today;
 
-            var promociones = await _context.promociones.ToListAsync();
-            ViewBag.Platos = await _context.platos.ToListAsync();
-            ViewBag.Combos = await _context.combos.ToListAsync();
+            // Obtener solo promociones no vencidas
+            var promociones = await _context.promociones
+                .Where(p => !p.fecha_fin.HasValue || p.fecha_fin >= hoy)
+                .ToListAsync();
+
+            // Diccionarios de platos y combos por ID
+            ViewBag.Platos = await _context.platos.ToDictionaryAsync(p => p.id_plato);
+            ViewBag.Combos = await _context.combos.ToDictionaryAsync(c => c.id_combo);
+
             return View(promociones);
         }
+
 
         public async Task<IActionResult> Details(int? id)
         {
@@ -52,16 +60,13 @@ namespace El_Tringulito.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Promociones promociones)
         {
-            // Validar que al menos tenga plato o combo
             if (!promociones.id_plato.HasValue && !promociones.id_combo.HasValue)
             {
                 ModelState.AddModelError("", "Debe seleccionar al menos un plato o un combo");
             }
 
-            // Verifica errores de validación
             if (!ModelState.IsValid)
             {
-                // Imprime errores en la consola (para debug)
                 foreach (var error in ModelState.Values.SelectMany(v => v.Errors))
                 {
                     Console.WriteLine(error.ErrorMessage);
@@ -75,13 +80,12 @@ namespace El_Tringulito.Controllers
                 return View(promociones);
             }
 
-            // Asigna el estado por defecto (por si acaso)
-            promociones.estado = "activa";
-
+            // Ya no se asigna estado
             _context.Add(promociones);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+
 
         public async Task<IActionResult> Edit(int? id)
         {

@@ -92,25 +92,24 @@
 
         <div class="form-group">
             <label asp-for="fecha_inicio"></label>
-            <input asp-for="fecha_inicio" class="form-control" type="date" required />
+            <input asp-for="fecha_inicio" class="form-control" type="date" id="fecha_inicio" readonly />
             <span asp-validation-for="fecha_inicio" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label asp-for="fecha_fin"></label>
-            <input asp-for="fecha_fin" class="form-control" type="date" required />
+            <input asp-for="fecha_fin" class="form-control" type="date" id="fecha_fin" required />
             <span asp-validation-for="fecha_fin" class="text-danger"></span>
         </div>
 
         <div class="form-group">
             <label for="porcentaje_descuento">Descuento (%)</label>
-            <input type="number" id="porcentaje_descuento" class="form-control" min="0" max="100" value="0" required />
+            <input type="number" id="porcentaje_descuento" class="form-control" min="1" max="100" value="1" required />
+            <span class="text-danger small" id="descuento-error" style="display:none;">El descuento debe ser mayor a 0 y menor o igual a 100.</span>
         </div>
 
-        <!-- Campo oculto para el precio (se envía al servidor) -->
         <input type="hidden" asp-for="precio" id="precio" />
 
-        <!-- Solo para visualización -->
         <div class="form-group">
             <label>Precio Final ($)</label>
             <input id="precio_display" class="form-control" readonly value="0.00" />
@@ -139,32 +138,61 @@
             const total = precioPlato + precioCombo;
             const precioFinal = total - (total * (descuento / 100));
 
-            // Actualiza el campo oculto (que se envía al servidor)
             document.getElementById("precio").value = precioFinal.toFixed(2);
-            // Actualiza el campo de visualización
             document.getElementById("precio_display").value = precioFinal.toFixed(2);
         }
 
         document.addEventListener("DOMContentLoaded", function () {
-            // Event listeners para actualizar el precio
+            const hoy = new Date().toISOString().split("T")[0];
+
+            const fechaInicio = document.getElementById("fecha_inicio");
+            if (fechaInicio) {
+                fechaInicio.value = hoy;
+                fechaInicio.readOnly = true;
+            }
+
+            const fechaFin = document.getElementById("fecha_fin");
+            if (fechaFin) {
+                fechaFin.setAttribute("min", hoy);
+            }
+
+            const descuentoInput = document.getElementById("porcentaje_descuento");
+            descuentoInput.addEventListener("input", function () {
+                const val = parseInt(this.value);
+                document.getElementById("descuento-error").style.display = (isNaN(val) || val <= 0 || val > 100) ? "block" : "none";
+                actualizarPrecioFinal();
+            });
+
             document.getElementById("id_plato").addEventListener("change", actualizarPrecioFinal);
             document.getElementById("id_combo").addEventListener("change", actualizarPrecioFinal);
-            document.getElementById("porcentaje_descuento").addEventListener("input", actualizarPrecioFinal);
 
-            // Validación antes de enviar el formulario
-            document.getElementById("formPromocion").addEventListener("submit", function(e) {
+            document.getElementById("formPromocion").addEventListener("submit", function (e) {
                 const plato = document.getElementById("id_plato").value;
                 const combo = document.getElementById("id_combo").value;
+                const fechaFinValue = document.getElementById("fecha_fin").value;
+                const descuento = parseInt(document.getElementById("porcentaje_descuento").value);
 
                 if (!plato && !combo) {
                     e.preventDefault();
-                    alert("Debe seleccionar al menos un plato o un combo");
+                    alert("Debe seleccionar al menos un plato o un combo.");
                     return false;
                 }
+
+                if (fechaFinValue < hoy) {
+                    e.preventDefault();
+                    alert("La fecha de fin no puede ser anterior a hoy.");
+                    return false;
+                }
+
+                if (isNaN(descuento) || descuento <= 0 || descuento > 100) {
+                    e.preventDefault();
+                    document.getElementById("descuento-error").style.display = "block";
+                    return false;
+                }
+
                 return true;
             });
 
-            // Inicializar el precio al cargar la página
             actualizarPrecioFinal();
         });
     </script>
